@@ -22,9 +22,9 @@ const generateAccessAndRefreshToken = async (userId) => {
 }
 
 const registerUser = AsyncHandler(async (req, res) => {
-  const {fullname, email, username, password} = req.body
+  const {email, username, password} = req.body
 
-  if([fullname, email, username, password].some((field) => field?.trim() === "")) {
+  if([email, username, password].some((field) => field?.trim() === "")) {
     throw new APIError(400, "All fields are required")
   }
 
@@ -34,32 +34,12 @@ const registerUser = AsyncHandler(async (req, res) => {
     throw new APIError(409, 'User with email or username already exists')
   }
 
-  const avatarLocalPath = req.files?.avatar[0]?.path
-
-  let coverImageLocalPath
-  if(req.files && Array.isArray(req.files.coverImage) &&req.files.coverImage.length > 0) {
-    coverImageLocalPath = req.files.coverImage[0].path
-  }
-
-  if(!avatarLocalPath) {
-    throw new APIError(400, 'avatar file is required')
-  }
-
-  const avatar = await uploadOnCloudinary(avatarLocalPath)
-  const coverImage = await uploadOnCloudinary(coverImageLocalPath)
-
-  if(!avatar){
-    throw new APIError(400, 'avatar file is Required')
-  }
-
   try {
     const user = await User.create({
       username: username.toLowerCase(),
-      fullname,
-      email,
-      avatar: avatar.url,
-      coverImage: coverImage.url || "",
-      password
+      fullname: "",
+      email: email,
+      password: password
     })
   
     const createdUser = await User.findById(user._id).select('-password -refreshToken')
@@ -68,39 +48,34 @@ const registerUser = AsyncHandler(async (req, res) => {
       throw new APIError(500, 'Something went wrong while creating user')
     }
   
+    console.log('user created succesfully')
     return res
       .status(201)
       .json(new APIResponse(200, createdUser, 'User register successfully'))
   } catch (error) {
     console.log('user creation failed')
-    if(avatar) {
-      await deleteFromCloudinary(avatar.public_id)
-    }
-    if(coverImage) {
-      await deleteFromCloudinary(coverImage.public_id)
-    }
 
-    throw new APIError(500, 'Something went wrong while creating user and images were deleted')
+    throw new APIError(500, 'Something went wrong while creating user')
   }
 
 })
 
 const loginUser = AsyncHandler(async (req, res) => {
-  const {email, username, password} = req.body
-  if(!username && !email) {
-    throw new Error(400, 'username or email is required')
+  const {username, password} = req.body
+  if(!username) {
+    throw new Error(400, 'username is required')
   }
 
   const user = await User.findOne({
-    $or: [{username}, {email}]
+    $or: [{username}]
   })
 
   if(!user) {
     throw new APIError(401, 'User does not exist')
   }
 
-  console.log(password)
-  console.log(user.password)
+  // console.log(password)
+  // console.log(user.password)
   const isPasswordCorrect = await user.isPasswordCorrect(password)
 
   if(!isPasswordCorrect) {
@@ -114,7 +89,7 @@ const loginUser = AsyncHandler(async (req, res) => {
     httpOnly: true,
     secure: true
   }
-
+  console.log("login successful")
   return res
     .status(200)
     .cookie('accessToken', accessToken, options)
