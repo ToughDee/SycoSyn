@@ -39,4 +39,11 @@ const deleteFromCloudinary = async (publicId) => {
   }
 }
 
-export {uploadOnCloudinary, deleteFromCloudinary}
+function getPublicIdFromUrl(url) {
+  const regex = /upload\/(?:v\d+\/)?(.+)\.[a-zA-Z0-9]+$/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
+
+
+export {uploadOnCloudinary, deleteFromCloudinary, getPublicIdFromUrl}

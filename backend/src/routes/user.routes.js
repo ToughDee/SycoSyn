@@ -7,6 +7,7 @@ import {
   logoutUser,
   refreshAccessToken,
   changeCurrentPassword,
+  getCurrentUser,
   updateAccountDetails,
   updateUserAvatar,
   updateUserCoverImage,
@@ -14,6 +15,8 @@ import {
   getWatchHistory
 } from '../controllers/user.controllers.js'
 import { verifyJWT } from '../middlewares/auth.middlewares.js'
+
+
 const router = Router()
 
 router.route('/register').post(
@@ -29,7 +32,6 @@ router.route('/register').post(
   ]),
   registerUser
 )
-
 router.route('/login').post(loginUser)
 
 //protected routes

@@ -19,11 +19,11 @@ const artSchema = new Schema
     },
     caption: {
       type: String,
-      required: true
+      default: ""
     },
     likes: {
       type: Number,
-      deafult: 0
+      default: 0
     },
     views: {
       type: Number,
@@ -31,7 +31,7 @@ const artSchema = new Schema
     },
     isPublished: {
       type: Boolean,
-      deafult: true
+      default: true
     }
   }, { timestamps: true }
 )

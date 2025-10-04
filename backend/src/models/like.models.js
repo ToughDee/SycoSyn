@@ -4,15 +4,15 @@ const likeSchema = new Schema
 (
   {
     likedBy: {
-      type: Schema.type.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User"
     },
     art: {
-      type: Schema.type.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Art"
     },
     comment: {
-      type: Schema.type.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Comment"
     }
   }, { timestamps: true }
