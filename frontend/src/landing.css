@@ -1,0 +1,10 @@
+/* App.css (or LandingPage.css) */
+
+
+
+/* Layout wrapper */
+.landing-page {
+  display: flex;
+  flex-direction: column !important;
+  width: 100%;
+}

@@ -1,0 +1,244 @@
+/* ---------- General Page ---------- */
+.g1-gallery-page {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  font-family: sans-serif;
+}
+
+.g1-gallery-main {
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* ---------- Top Bar ---------- */
+.g1-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.g1-gallery-title {
+  font-size: 2rem;
+  font-weight: bold;
+  background: linear-gradient(90deg, #0d9488, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-left: 15px;
+}
+
+.g1-profile-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 2rem;
+  display: flex;
+  background: linear-gradient(90deg, #0d9488, #7c3aed);
+  -webkit-text-fill-color: transparent;
+  border: none;
+  cursor: pointer;
+  max-width: 100px;
+  border-radius: 50px;
+  margin-right: 10px;
+}
+
+/* ---------- Search Bar ---------- */
+.g1-search-bar {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.g1-search-bar input {
+  padding: 0.5rem;
+  width: 250px;
+  border-radius: 6px 0 0 6px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+.g1-search-bar button {
+  padding: 0.5rem 1rem;
+  border-radius: 0 6px 6px 0;
+  border: none;
+  background-color: teal;
+  color: white;
+  cursor: pointer;
+}
+
+/* ---------- Category Filter ---------- */
+.g1-category-filter {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.g1-category-btn {
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  border: 1px solid teal;
+  background: white;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.g1-category-btn.active {
+  background: teal;
+  color: white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* ---------- Loading / No Images ---------- */
+.g1-loading,
+.g1-no-images {
+  text-align: center;
+  font-size: 1.5rem;
+  padding: 3rem 0;
+  width: 100vw;
+}
+
+/* ---------- Pinterest-style Masonry ---------- */
+.g1-image-grid {
+  column-count: 4;
+  column-gap: 1rem;
+  width: 100%;
+  display: block;
+}
+
+@media (max-width: 1200px) {
+  .g1-image-grid { column-count: 3; }
+}
+@media (max-width: 900px) {
+  .g1-image-grid { column-count: 2; }
+}
+@media (max-width: 600px) {
+  .g1-image-grid { column-count: 1; }
+}
+
+/* ---------- Image Card ---------- */
+.g1-image-card {
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 1rem;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  break-inside: avoid;
+}
+
+.g1-image-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+.g1-image-wrapper {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.g1-image-wrapper img {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.g1-image-card:hover img {
+  transform: scale(1.05);
+}
+
+/* ---------- Card Content ---------- */
+.g1-card-content {
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.g1-artist-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.g1-artist-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #555;
+}
+
+.g1-artist-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.g1-artist-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.g1-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.g1-tag {
+  background-color: #eee;
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.g1-card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.g1-like-btn,
+.g1-bookmark-btn {
+  padding: 0.25rem 0.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  background: #f0f0f0;
+  transition: background 0.3s, color 0.3s;
+}
+
+.g1-like-btn.liked {
+  background-color: #ffe6e6;
+  color: red;
+}
+
+.g1-bookmark-btn.bookmarked {
+  background-color: #e6f7ff;
+  color: teal;
+}
+
+.g1-like-btn:hover:not(.liked),
+.g1-bookmark-btn:hover:not(.bookmarked) {
+  background-color: #ddd;
+}

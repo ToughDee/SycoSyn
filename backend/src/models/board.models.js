@@ -1,14 +1,14 @@
 import mongoose, {Schema} from 'mongoose'
 
-const commentSchema = new Schema
+const boardSchema = new Schema
 (
   {
     owner: {
-      type: Schema.type.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User"
     },
     arts: [{
-      type: Schema.type.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Art"
     }],
     name: {
@@ -18,9 +18,9 @@ const commentSchema = new Schema
     },
     description: {
       type: String,
-      required: true
+      default: ""
     }
   }, { timestamps: true }
 )
 
-export const Comment = mongoose.model("Comment", commentSchema)
+export const Board = mongoose.model("Board", boardSchema)

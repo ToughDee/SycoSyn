@@ -1,0 +1,30 @@
+import { Router } from 'express';
+import {
+    addArtToBoard,
+    createBoard,
+    deleteBoard,
+    getBoardById,
+    getUserBoards,
+    removeArtFromBoard,
+    updateBoard,
+} from "../controllers/board.controllers.js"
+import {verifyJWT} from "../middlewares/auth.middlewares.js"
+
+const router = Router();
+
+router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
+
+router.route("/").post(createBoard)
+
+router
+    .route("/:boardId")
+    .get(getBoardById)
+    .patch(updateBoard)
+    .delete(deleteBoard);
+
+router.route("/add/:artId/:boardId").patch(addArtToBoard);
+router.route("/remove/:artId/:boardId").patch(removeArtFromBoard);
+
+router.route("/user/:userId").get(getUserBoards);
+
+export default router

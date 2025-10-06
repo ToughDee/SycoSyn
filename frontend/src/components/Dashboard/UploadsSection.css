@@ -1,0 +1,110 @@
+.uploads-section {
+  padding: 10px;
+  width: 100vw;
+}
+
+.uploads-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+/* Horizontal scroll wrapper */
+.uploads-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 12px;
+  padding-bottom: 5px;
+  scroll-behavior: smooth;
+}
+
+.uploads-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.uploads-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
+
+/* Card styling */
+.upload-card {
+  min-width: 220px; /* width of each card */
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  flex-shrink: 0; /* important for horizontal scroll */
+  min-width: 600px;
+  min-height: 300px;
+}
+
+.upload-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+/* Image wrapper */
+.image-wrapper {
+  position: relative;
+  overflow: hidden;
+ 
+}
+
+.image-wrapper img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  transition: transform 0.3s;
+  
+}
+
+.upload-card:hover img {
+  transform: scale(1.05);
+}
+
+/* Delete button */
+.delete-btn {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background: red;
+  color: white;
+  border: none;
+  padding: 3px 6px;
+  font-size: 0.7rem;
+  border-radius: 3px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 20;
+  
+}
+
+.upload-card:hover .delete-btn {
+  opacity: 1;
+}
+
+/* Card content */
+.upload-content {
+  padding: 5px;
+}
+
+.upload-content h3 {
+  font-size: 0.9rem;
+  margin: 3px 0;
+}
+
+.upload-content p {
+  font-size: 0.75rem;
+  color: #555;
+  margin: 0 0 5px 0;
+}
+
+/* Stats row */
+.upload-stats {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  font-size: 0.75rem;
+}

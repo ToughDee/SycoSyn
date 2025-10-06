@@ -4,11 +4,11 @@ const commentSchema = new Schema
 (
   {
     owner: {
-      type: Schema.type.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User"
     },
     art: {
-      type: Schema.type.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Art"
     },
     content: {

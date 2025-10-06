@@ -1,0 +1,109 @@
+.bookmarks-section {
+  padding: 1rem;
+  width: 100vw;
+}
+
+.section-title {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+/* Horizontal scroll container */
+.bookmarks-scroll {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scroll-behavior: smooth;
+}
+
+.bookmarks-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.bookmarks-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+}
+
+/* Card */
+.bookmark-card {
+  flex: 0 0 250px; /* Fixed width for horizontal scrolling */
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transition: transform 0.3s, box-shadow 0.3s;
+  min-width: 400px;
+ 
+}
+
+.bookmark-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
+
+/* Image */
+.bookmark-image-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.bookmark-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.bookmark-card:hover .bookmark-image {
+  transform: scale(1.05);
+}
+
+/* Remove button */
+.remove-btn1 {
+  position: absolute;
+  bottom: 12px;
+  right: 15px;
+  padding: 0.3rem 0.6rem;
+  background: #ff4d4f ;
+
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+
+}
+
+.bookmark-card:hover .remove-btn1 {
+  opacity: 1;
+}
+
+/* Content */
+.bookmark-content {
+  padding: 0.5rem 0.6rem;
+}
+
+.bookmark-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.bookmark-artist {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 0.3rem;
+}
+
+.bookmark-stats {
+  font-size: 0.8rem;
+  color: #333;
+  display: flex;
+  justify-content: flex-start;
+  gap: 0.8rem;
+}

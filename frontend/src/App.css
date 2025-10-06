@@ -1,14 +1,19 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
-
-
-
 @import url("https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css");
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: 'Poppins', sans-serif;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 body {
@@ -19,19 +24,18 @@ body {
     background: linear-gradient(90deg, #e2e2e2, #c9d6ff);
 }
 
-.container {
+.auth1-container {
     position: relative;
-    width: 850px;
-    height: 550px;
+    width: 100vw;
+    height: 100vh;
     background: #fff;
     border-radius: 30px;
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
-    margin: 20px;
+   
     overflow: hidden;
 }
 
-
-.form-box {
+.form-box-1 {
     position: absolute;
     right: 0;
     width: 50%;
@@ -43,39 +47,36 @@ body {
     text-align: center;
     padding: 40px;
     z-index: 1;
-    transition: .6s ease-in-out 1.2s ,visibility 0s 1s;
+    transition: 0.6s ease-in-out 1.2s, visibility 0s 1s;
 }
 
-.container.active .form-box {
+.auth1-container.active-1 .form-box-1 {
     right: 50%;
 }
 
-.form-box.register{
+.form-box-1.register-1 {
     visibility: hidden;
 }
 
-.container.active .form-box.register
-{
+.auth1-container.active-1 .form-box-1.register-1 {
     visibility: visible;
 }
+
 form {
     width: 100%;
 }
 
-
-.container h1 {
+.auth1-container h1 {
     font-size: 36px;
     margin: -10px 0;
 }
 
-
-.input-box {
+.input-box-1 {
     position: relative;
     margin: 30px 0;
 }
 
-
-.input-box input {
+.input-box-1 input {
     width: 100%;
     padding: 13px 50px 13px 20px;
     background: #eee;
@@ -87,14 +88,12 @@ form {
     font-weight: 500;
 }
 
-
-.input-box input::placeholder {
+.input-box-1 input::placeholder {
     color: #888;
     font-weight: 400;
 }
 
-
-.input-box i {
+.input-box-1 i {
     position: absolute;
     right: 20px;
     top: 50%;
@@ -103,21 +102,17 @@ form {
     color: #888;
 }
 
-
-.forgot-link {
+.forgot-link-1 {
     margin: -15px 0 15px;
 }
 
-
-.forgot-link a {
+.forgot-link-1 a {
     font-size: 14.5px;
     color: #333;
     text-decoration: none;
 }
 
-
-
-.btn {
+.btn-1 {
     width: 100%;
     height: 48px;
     background: #7494ec;
@@ -130,18 +125,17 @@ form {
     font-weight: 600;
 }
 
-
-.container p {
+.auth1-container p {
     font-size: 14.5px;
     margin: 15px 0;
 }
 
-
-.social-icons {
+.social-icons-1 {
     display: flex;
     justify-content: center;
 }
-.social-icons a {
+
+.social-icons-1 a {
     display: inline-flex;
     padding: 10px;
     border: 2px solid #ccc;
@@ -152,160 +146,142 @@ form {
     margin: 0 8px;
 }
 
-.toggle-box {
-  position: absolute
-  ;
-  height: 100%;
-
-  width: 100%;
-
+.toggle-box-1 {
+    position: absolute;
+    height: 100%;
+    width: 100%;
 }
 
-
-.toggle-box::before {
+.toggle-box-1::before {
     content: '';
     position: absolute;
-    left: -250%; 
+    left: -250%;
     width: 300%;
     height: 100%;
     background: #7494ec;
- 
     border-radius: 150px;
     z-index: 2;
-    transition: 1.8s ease-in-out; 
+    transition: 1.8s ease-in-out;
 }
 
-/* // final state */
-.container.active .toggle-box::before {
+.auth1-container.active-1 .toggle-box-1::before {
     left: 50%;
 }
 
-.toggle-panel {
+.toggle-panel-1 {
     position: absolute;
     width: 50%;
     height: 100%;
-    
     color: #fff;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 2;
-    transition: .6s ease-in-out;
+    transition: 0.6s ease-in-out;
 }
 
-
-
-.toggle-panel.toggle-left {
+.toggle-panel-1.toggle-left-1 {
     left: 0;
-    transition-delay: 1.2s; 
+    transition-delay: 1.2s;
 }
 
-
-.container.active .toggle-panel.toggle-left {
+.auth1-container.active-1 .toggle-panel-1.toggle-left-1 {
     left: -50%;
-    transition-delay: .6s; 
+    transition-delay: 0.6s;
 }
 
-
-.toggle-panel.toggle-right {
+.toggle-panel-1.toggle-right-1 {
     right: -50%;
-    transition-delay: .6s;
+    transition-delay: 0.6s;
 }
 
-
-.container.active .toggle-panel.toggle-right {
+.auth1-container.active-1 .toggle-panel-1.toggle-right-1 {
     right: 0;
     transition-delay: 1.2s;
 }
 
-.toggle-panel p {
+.toggle-panel-1 p {
     margin-bottom: 20px;
 }
 
-
-.toggle-panel .btn {
+.toggle-panel-1 .btn-1 {
     width: 160px;
     height: 46px;
     background: transparent;
-    border: 2px solid #fff; /* White border */
+    border: 2px solid #fff;
     box-shadow: none;
 }
 
-
-
+.form-message-1 {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    text-align: center;
+    font-weight: 500;
+    color: #f00;
+}
 
 /* responsive */
 @media screen and (max-width: 650px) {
-  
-    .container {
+    .auth1-container {
         height: calc(100vh - 40px);
     }
 
-   .form-box {
+    .form-box-1 {
         bottom: 0;
         width: 100%;
         height: 70%;
     }
 
-  
-    .container.active .form-box {
+    .auth1-container.active-1 .form-box-1 {
         right: 0;
         bottom: 30%;
     }
 
-
-    .toggle-box::before {
+    .toggle-box-1::before {
         left: 0;
         top: -270%;
         width: 100%;
         height: 300%;
-        border-radius: 20vw; 
+        border-radius: 20vw;
     }
 
-
-    .container.active .toggle-box::before {
+    .auth1-container.active-1 .toggle-box-1::before {
         left: 0;
         top: 70%;
     }
 
-  
-    .toggle-panel {
+    .toggle-panel-1 {
         width: 100%;
         height: 30%;
     }
 
-    
-    .toggle-panel.toggle-left {
+    .toggle-panel-1.toggle-left-1 {
         top: 0;
     }
 
-   
-    .container.active .toggle-panel.toggle-left {
+    .auth1-container.active-1 .toggle-panel-1.toggle-left-1 {
         left: 0;
         top: -30%;
     }
 
-   
-    .toggle-panel.toggle-right {
+    .toggle-panel-1.toggle-right-1 {
         right: 0;
         bottom: -30%;
     }
 
- 
-    .container.active .toggle-panel.toggle-right {
+    .auth1-container.active-1 .toggle-panel-1.toggle-right-1 {
         bottom: 0;
     }
 }
 
-
 @media screen and (max-width: 400px) {
-    
-    .form-box {
+    .form-box-1 {
         padding: 20px;
     }
 
-    .toggle-panel h1 {
+    .toggle-panel-1 h1 {
         font-size: 30px;
     }
 }

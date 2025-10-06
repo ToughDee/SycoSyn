@@ -1,0 +1,65 @@
+.features-section {
+  width: 100%;
+  width: 100%;
+  height: 800px;
+  background: #bec0fb;
+  text-align: center;
+
+  box-sizing: border-box;
+  z-index: 2;
+  margin-top: -50px;
+}
+.features-section .container {
+    /* keeps content centered */
+  margin: auto;
+  width: 100%;          /* ensure container stretches full width of section */
+  height: 1000px;
+}
+.features-section h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  margin-top: 3rem;
+  padding-top: 1rem;
+}
+
+.features-section h3 {
+  font-size: 2rem;
+  margin-top: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.features-section p {
+  color: #555;
+  margin-bottom: 2rem;
+}
+
+/* Feature Cards */
+.basic-features, .advanced-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .basic-features, .advanced-features {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.feature-card {
+  background: white;
+  border-radius: 12px;
+  padding: 0.5rem;
+  box-shadow: 0 4px 12px rgba(134, 38, 38, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+.feature-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}

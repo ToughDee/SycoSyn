@@ -1,0 +1,14 @@
+/* src/index.css or src/App.css (Global) */
+
+html, body {
+  /* Crucial for proper height calculation and scrolling */
+  height: auto; 
+  margin: 0;
+  padding: 0;
+  /* Prevents the body from causing horizontal scroll */
+  overflow-x: hidden ; 
+  scroll-behavior: smooth;
+  font-family: "PP Neue Montreal", sans-serif;
+  overflow-y: visible ;
+
+}

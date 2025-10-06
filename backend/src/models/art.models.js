@@ -4,7 +4,7 @@ const artSchema = new Schema
 (
   {
     owner: {
-      type: Schema.type.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User"
     },
     name: {
@@ -15,7 +15,7 @@ const artSchema = new Schema
     },
     content: {
       type: String,
-      required: true,
+      required: true
     },
     caption: {
       type: String,

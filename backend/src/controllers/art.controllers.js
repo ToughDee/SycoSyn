@@ -1,5 +1,5 @@
 import mongoose, { isValidObjectId } from "mongoose";
-import { Art } from "../models/arts.models.js";
+import { Art } from "../models/art.models.js";
 import { User } from "../models/user.models.js";
 import { APIError } from "../utils/APIError.js";
 import { APIResponse } from "../utils/APIResponse.js";
@@ -7,10 +7,31 @@ import { AsyncHandler } from "../utils/AsyncHandler.js";
 import { uploadOnCloudinary, deleteFromCloudinary, getPublicIdFromUrl } from "../utils/cloudinary.js";
 
 const getAllArts = AsyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, query, sortBy = "createdAt", sortType = "desc", userId } = req.query;
+  const {
+    page = 1,
+    limit = 10,
+    query,           // search term for art name
+    category,        // filter by category
+    sortBy = "createdAt",
+    sortType = "desc",
+    userId,
+  } = req.query;
 
   const filter = {};
-  if (query) filter.name = { $regex: query, $options: "i" };
+
+  // Partial name search (case-insensitive)
+  if (query) {
+    filter.name = { $regex: query, $options: "i" };
+  }
+
+  // Filter by category if provided
+  if (category && category !== "All") {
+    filter.name = { ...filter.name, $regex: category, $options: "i" };
+    // Note: if you stored category separately, you could filter by category field instead
+    // e.g., filter.category = category
+  }
+
+  // Filter by user if userId is provided
   if (userId) {
     if (!isValidObjectId(userId)) throw new APIError(400, "Invalid userId");
     filter.owner = userId;
@@ -26,28 +47,34 @@ const getAllArts = AsyncHandler(async (req, res) => {
 
   const total = await Art.countDocuments(filter);
 
-  return res.status(200).json(new APIResponse(200, { arts, total, page: parseInt(page), limit: parseInt(limit) }, "Arts fetched successfully"));
+  return res.status(200).json(
+  new APIResponse(200, { arts, total, page: parseInt(page), limit: parseInt(limit) }, "Arts fetched successfully")
+);
 });
 
 const publishAnArt = AsyncHandler(async (req, res) => {
-  const { name, content, caption } = req.body;
+  const { name, caption } = req.body;
   const artFile = req.file?.path;
 
-  if (!name || !content || !artFile) throw new APIError(400, "All fields and art file are required");
+  if (!name || !caption || !artFile) throw new APIError(400, "All fields and art file are required");
 
   const uploadedArt = await uploadOnCloudinary(artFile);
   if (!uploadedArt?.url) throw new APIError(500, "Error uploading art");
 
-  const art = await Art.create({
-    owner: req.user._id,
-    name,
-    content: uploadedArt.url,
-    caption: caption || "",
-    isPublished: true
-  });
-
-  return res.status(201).json(new APIResponse(201, art, "Art published successfully"));
-});
+  try {
+    const art = await Art.create({
+      owner: req.user._id,
+      name,
+      content: uploadedArt.url,
+      caption: caption || "",
+      isPublished: true
+    })
+  
+    return res.status(201).json(new APIResponse(201, art, "Art published successfully"))
+  } catch (error) {
+    throw new APIError(402, "Error while creating art object")
+  }
+})
 
 const getArtById = AsyncHandler(async (req, res) => {
   const { artId } = req.params;
