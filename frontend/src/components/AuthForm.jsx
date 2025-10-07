@@ -1,74 +1,108 @@
 import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom"; 
 import "../App.css";
 
 export default function AuthForm1() {
-  const [isActive, setIsActive] = useState(false); // toggle login/register
-  const [message, setMessage] = useState(""); 
+  const navigate = useNavigate(); 
+
+  const [isActive, setIsActive] = useState(false);
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Login refs
+  // Refs for login
   const loginUsernameRef = useRef();
   const loginPasswordRef = useRef();
 
-  // Register refs
+  // Refs for register
   const registerUsernameRef = useRef();
   const registerEmailRef = useRef();
   const registerPasswordRef = useRef();
 
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
-    setLoading(true);
+ const handleLoginSubmit = async (e) => {
+  e.preventDefault();
+  setMessage("");
+  setLoading(true);
 
-    try {
-      const res = await fetch("http://localhost:8000/api/v1/user/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: loginUsernameRef.current.value,
-          password: loginPasswordRef.current.value,
-        }),
-      });
+  try {
+    const res = await fetch("http://localhost:8000/api/v1/user/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: loginUsernameRef.current.value,
+        password: loginPasswordRef.current.value,
+      }),
+      credentials:"include"
+    });
 
-      const data = await res.json();
-      setLoading(false);
-      if (res.ok) setMessage("Login successful! Token: " + data.data.accessToken);
-      else setMessage("Login failed: " + data.message);
-    } catch (err) {
-      setLoading(false);
-      setMessage("Login failed: " + err.message);
+    const data = await res.json();
+    setLoading(false);
+
+    if (res.ok) {
+      setMessage("✅ Login successful!");
+   
+      setTimeout(() => navigate("/gallery"), 1000);
+    } else {
+      setMessage("❌ Login failed: " + data.message);
     }
-  };
+  } catch (err) {
+    setLoading(false);
+    setMessage("❌ Login failed: " + err.message);
+  }
+};
 
   const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
-    setLoading(true);
+  e.preventDefault();
+  setMessage("");
+  setLoading(true);
 
-    try {
-      const res = await fetch("http://localhost:8000/api/v1/user/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: registerEmailRef.current.value,
-          username: registerUsernameRef.current.value,
-          password: registerPasswordRef.current.value,
-        }),
-      });
+  const email = registerEmailRef.current.value;
+  const username = registerUsernameRef.current.value;
+  const password = registerPasswordRef.current.value;
 
-      const data = await res.json();
-      setLoading(false);
-      if (res.ok) setMessage("Registration successful! ID: " + data.data._id);
-      else setMessage("Registration failed: " + data.message);
-    } catch (err) {
-      setLoading(false);
-      setMessage("Registration failed: " + err.message);
-    }
-  };
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    setMessage("❌ Invalid email format");
+    setLoading(false);
+    return;
+  }
+
+  // Password validation
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+  if (!passwordRegex.test(password)) {
+    setMessage(
+      "❌ Password must be at least 8 characters, include uppercase, lowercase, number, and special character"
+    );
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:8000/api/v1/user/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, username, password }),
+    });
+
+    const data = await res.json();
+    setLoading(false);
+    if (res.ok) setMessage("✅ Registered successfully!");
+    else setMessage("❌ Registration failed: " + data.message);
+  } catch (err) {
+    setLoading(false);
+    setMessage("❌ Registration failed: " + err.message);
+  }
+};
 
   return (
     <div className={`auth1-container ${isActive ? "active-1" : ""}`}>
-      {/* Login Form */}
+   
+      <button className="back-btn-1" onClick={() => navigate("/")}>
+        <i className="bx bx-arrow-back"></i> Back
+      </button>
+
+    
       <div className="form-box-1 login-1">
         <form onSubmit={handleLoginSubmit}>
           <h1>Login</h1>
@@ -102,7 +136,7 @@ export default function AuthForm1() {
         </form>
       </div>
 
-      {/* Register Form */}
+      
       <div className="form-box-1 register-1">
         <form onSubmit={handleRegisterSubmit}>
           <h1>Register</h1>
@@ -137,7 +171,7 @@ export default function AuthForm1() {
         </form>
       </div>
 
-      {/* Toggle Panels */}
+    
       <div className="toggle-box-1">
         <div className="toggle-panel-1 toggle-left-1">
           <h1>Hello, Welcome!</h1>

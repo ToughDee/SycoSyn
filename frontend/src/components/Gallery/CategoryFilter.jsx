@@ -1,7 +1,21 @@
 import React from "react";
 import "./Gallery.css";
 
-const categories = ["All", "Painting", "Illustration", "Digital", "Photography", "3D Art"];
+const categories = [
+  "All",
+  "Painting",
+  "Illustration",
+  "Digital",
+  "Photography",
+  "3D Art",
+  "Writing",
+  "Sketch",
+  "Abstract",
+  "Nature",
+  "Architecture",
+  "People",
+  "Animals"
+];
 
 const CategoryFilter = ({ selectedCategory, onSelectCategory }) => {
   return (

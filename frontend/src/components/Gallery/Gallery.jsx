@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import TopBar from "./TopBar";
 import SearchBar from "./SearchBar";
 import CategoryFilter from "./CategoryFilter";
-import ImageCard from "./ImageCard";
+import ImageCard from "./Imagecard";
 import "./Gallery.css";
 
 function Gallery() {
@@ -21,7 +21,7 @@ function Gallery() {
         category: selectedCategory === "All" ? "" : selectedCategory
       });
 
-      const response = await fetch(`http://localhost:8000/api/v1/art?${params.toString()}`);
+      const response = await fetch(`http://localhost:8000/api/v1/art?${params.toString()}`, {credentials: "include"});
       const data = await response.json();
 
       setImages(data?.data?.arts || []);

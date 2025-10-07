@@ -15,7 +15,11 @@
   justify-content: space-between;
   align-items: center;
   margin: 10px 20px 30px 20px;
+  height: 50px;
+  margin-top: -20px;
+  margin-bottom: -60px;
   gap: 20px;
+  background-color: transparent;
 
 }
 .homiee{
@@ -29,7 +33,7 @@
   font-weight: 500;
   font-size: 15px;
   transition: background 0.3s ease;
-  margin-top: -25px;
+  margin-top: -3px;
 }
 
 /* Gradient Dashboard title */
@@ -67,7 +71,7 @@
   font-weight: 500;
   font-size: 15px;
   transition: background 0.3s ease;
- margin-top: -25px;
+ margin-top: -1px;
  margin-right: 10px;
 }
 
@@ -94,3 +98,70 @@
     width: 100%;
   }
 }
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Modal content box */
+.modal-content {
+  background: white;
+  padding: 2rem 3rem;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+.modal-content h3 {
+  margin-bottom: 1.5rem;
+  color: #4f46e5;
+}
+
+/* Buttons inside modal */
+.modal-buttons {
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+}
+
+.confirm-btn,
+.cancel-btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  font-size: 14px;
+  transition: background 0.3s ease;
+}
+
+.confirm-btn {
+  background-color: #4f46e5;
+  color: white;
+}
+
+.confirm-btn:hover {
+  background-color: #3730a3;
+}
+
+.cancel-btn {
+  background-color: #ccc;
+  color: #333;
+}
+
+.cancel-btn:hover {
+  background-color: #999;
+}
+

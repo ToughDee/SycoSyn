@@ -1,35 +1,45 @@
 import "../Features.css";
-import { FaHeart } from "react-icons/fa"
+import { 
+  FaUser, 
+  FaUpload, 
+  FaFolderOpen, 
+  FaHeart, 
+  FaSearch, 
+  FaTachometerAlt, 
+  FaMagic, 
+  FaTags, 
+  FaUsers 
+} from "react-icons/fa";
 
 const FeaturesSection = () => {
   const basicFeatures = [
     {
-      icon: "👤",
+      icon: <FaUser size={35} color="#6366f1" />,
       title: "Artist Profiles",
       description: "Create your unique profile and showcase your artistic identity",
     },
     {
-      icon: "⬆️",
+      icon: <FaUpload size={35} color="#6366f1" />,
       title: "Upload & Showcase",
       description: "Easily upload and display your creative works to the world",
     },
     {
-      icon: "📂",
+      icon: <FaFolderOpen size={35} color="#6366f1" />,
       title: "Organize Works",
       description: "Create boards and collections to organize your portfolio",
     },
     {
-      icon: "❤️",
+      icon: <FaHeart size={35} color="#6366f1" />,
       title: "Like & Bookmark",
       description: "Save and organize your favorite artworks from other creators",
     },
     {
-      icon: "🔍",
+      icon: <FaSearch size={35} color="#6366f1" />,
       title: "Easy Discovery",
       description: "Find artwork through intuitive search and categorization",
     },
     {
-      icon: "📊",
+      icon: <FaTachometerAlt size={35} color="#6366f1" />,
       title: "User Dashboard",
       description: "Manage your profile, works, and engagement in one place",
     },
@@ -37,17 +47,17 @@ const FeaturesSection = () => {
 
   const advancedFeatures = [
     {
-      icon: "✨",
+      icon: <FaMagic size={35} color="#f59e0b" />,
       title: "AI Recommendations",
       description: "Get personalized suggestions based on your interests",
     },
     {
-      icon: "🏷️",
+      icon: <FaTags size={35} color="#f59e0b" />,
       title: "Smart Tagging",
       description: "Automatic AI-powered categorization and tagging",
     },
     {
-      icon: "👥",
+      icon: <FaUsers size={35} color="#f59e0b" />,
       title: "Social Features",
       description: "Comments, collaborations, and group collections",
     },

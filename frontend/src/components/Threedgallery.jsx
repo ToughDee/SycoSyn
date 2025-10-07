@@ -1,9 +1,9 @@
 import { useState } from "react";
-
-import "../Rgallery.css"
+import "../Rgallery.css";
 
 const Rotating3DGallery = () => {
   const [hovered, setHovered] = useState(null);
+  const [loginMsg, setLoginMsg] = useState("");
 
   const artworks = [
     { id: 1, image: "/assets/images/a1.jpg", title: "Abstract Geometry", artist: "Sarah Chen", category: "Digital Art" },
@@ -11,10 +11,18 @@ const Rotating3DGallery = () => {
     { id: 3, image: "/assets/images/a3.jpg", title: "Creative Workspace", artist: "Luna Park", category: "Illustration" },
   ];
 
+  const handleViewArtwork = () => {
+    setLoginMsg("🚫 Please login to view this artwork!");
+    // Auto-hide after 3 seconds
+    setTimeout(() => setLoginMsg(""), 1000);
+  };
+
   return (
     <section className="gallery-section">
       <h2>Featured Gallery</h2>
       <p>Hover to flip the artwork</p>
+
+      {loginMsg && <div className="login-msg">{loginMsg}</div>}
 
       <div className="gallery-grid">
         {artworks.map((art, i) => (
@@ -38,7 +46,7 @@ const Rotating3DGallery = () => {
               <div className="art-back">
                 <h3>{art.title}</h3>
                 <p>by {art.artist}</p>
-                <button>View Artwork</button>
+                <button onClick={handleViewArtwork}>View Artwork</button>
               </div>
             </div>
           </div>

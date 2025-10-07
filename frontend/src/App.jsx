@@ -12,6 +12,7 @@ import UploadArtForm from "./components/Dashboard/UploadArt";
 
 import { UploadsProvider } from "./Store/UploadsContext";
 import { BookmarksProvider } from "./Store/BookmarksContext";
+import UserProfileTest from "./components/Dashboard/Other-user";
 
 import "./index.css";
 
@@ -28,6 +29,7 @@ function App() {
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/user-profile" element={<Dashboard />} />
             <Route path="/upload-artworks" element={<UploadArtForm />} />
+            <Route path="/user/:userId" element={<UserProfileTest />} />
           </Routes>
         </Router>
       </BookmarksProvider>

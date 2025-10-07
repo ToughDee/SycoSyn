@@ -10,6 +10,11 @@ function UploadArtForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
+
+
+
+
+
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 

@@ -4,8 +4,9 @@ import "../nav.css"; // normal CSS
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-   const navigate = useNavigate();
+  const navigate = useNavigate();
+
+  // Detect scroll to add background/shadow
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -14,14 +15,15 @@ const Navigation = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Smooth scroll to section
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
-      setIsMobileMenuOpen(false);
     }
   };
 
+  // Nav links
   const navLinks = [
     { label: "Home", id: "hero" },
     { label: "Features", id: "features" },
@@ -39,7 +41,6 @@ const Navigation = () => {
         </div>
 
         {/* Desktop Navigation */}
-        
         <div className="nav-links">
           {navLinks.map((link) => (
             <button
@@ -54,33 +55,14 @@ const Navigation = () => {
 
         {/* CTA Button */}
         <div className="cta-btn">
-          <button className="btn-primary" onClick={() => navigate("/auth")}>Sign Up / Login</button>
+          <button
+            className="btn-primary"
+            onClick={() => navigate("/auth")}
+          >
+            Sign Up / Login
+          </button>
         </div>
-
-        {/* Mobile Menu Button */}
-        <button
-          className="menu-toggle"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? "✕" : "☰"}
-        </button>
       </div>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="mobile-menu">
-          {navLinks.map((link) => (
-            <button
-              key={link.id}
-              onClick={() => scrollToSection(link.id)}
-              className="mobile-link"
-            >
-              {link.label}
-            </button>
-          ))}
-          <button className="btn-primary mobile-btn" onClick={() => navigate("/auth")} >Sign Up/Login </button>
-        </div>
-      )}
     </nav>
   );
 };

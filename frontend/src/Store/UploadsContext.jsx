@@ -1,46 +1,15 @@
-import { createContext, useReducer } from "react";
+import { createContext, useReducer, useEffect } from "react";
 
 export const UploadsContext = createContext();
 
 // ✅ Initial state
-const initialUploads = [
-    {
-      id: 1,
-      title: "Abstract Waves",
-      image:
-        "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&h=600&fit=crop",
-      likes: 45,
-      uploadDate: "2024-03-15",
-    },
-    {
-      id: 2,
-      title: "Sunset Dreams",
-      image:
-        "https://images.unsplash.com/photo-1549887534-1541e9326642?w=800&h=600&fit=crop",
-      likes: 89,
-      uploadDate: "2024-03-10",
-    },
-    {
-      id: 3,
-      title: "Urban Geometry",
-      image:
-        "https://images.unsplash.com/photo-1536924940846-227afb31e2a5?w=800&h=600&fit=crop",
-      likes: 67,
-      uploadDate: "2024-03-08",
-    },
-    {
-      id: 4,
-      title: "Nature's Palette",
-      image:
-        "https://images.unsplash.com/photo-1515405295579-ba7b45403062?w=800&h=600&fit=crop",
-      likes: 102,
-      uploadDate: "2024-03-05",
-    },
-  ];
+const initialUploads = [];
 
 // ✅ Reducer
 const uploadsReducer = (state, action) => {
   switch (action.type) {
+    case "SET_UPLOADS":
+      return action.payload;
     case "ADD_UPLOAD":
       return [action.payload, ...state];
     case "DELETE_UPLOAD":
@@ -57,6 +26,29 @@ const uploadsReducer = (state, action) => {
 // ✅ Provider
 export const UploadsProvider = ({ children }) => {
   const [uploads, dispatchUploads] = useReducer(uploadsReducer, initialUploads);
+
+  useEffect(() => {
+    // Dummy API call
+    const fetchUploads = async () => {
+      try {
+        const res = await fetch("https://jsonplaceholder.typicode.com/photos?_limit=10");
+        const data = await res.json();
+        // Transform data to match your uploads structure
+        const formattedData = data.map((item) => ({
+          id: item.id,
+          title: item.title,
+          artist: "Dummy Artist",
+          image: item.url,
+          likes: Math.floor(Math.random() * 100),
+        }));
+        dispatchUploads({ type: "SET_UPLOADS", payload: formattedData });
+      } catch (err) {
+        console.error("Failed to fetch uploads:", err);
+      }
+    };
+
+    fetchUploads();
+  }, []);
 
   return (
     <UploadsContext.Provider value={{ uploads, dispatchUploads }}>

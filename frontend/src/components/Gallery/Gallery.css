@@ -51,12 +51,14 @@
 .g1-search-bar {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
   margin: 1rem 0;
 }
 
 .g1-search-bar input {
   padding: 0.5rem;
-  width: 250px;
+  width: 300px;
   border-radius: 6px 0 0 6px;
   border: 1px solid #ccc;
   outline: none;
@@ -64,11 +66,32 @@
 
 .g1-search-bar button {
   padding: 0.5rem 1rem;
-  border-radius: 0 6px 6px 0;
   border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: white;
+  background-color: teal;
+  border-radius: 0 6px 6px 0;
+}
+
+.g1-upload-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  margin-left: 0.5rem;
   background-color: teal;
   color: white;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.g1-upload-icon-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
 /* ---------- Category Filter ---------- */
@@ -169,6 +192,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+   cursor: pointer;
 }
 
 .g1-artist-avatar {
@@ -242,3 +266,4 @@
 .g1-bookmark-btn:hover:not(.bookmarked) {
   background-color: #ddd;
 }
+

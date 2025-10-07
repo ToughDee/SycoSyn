@@ -1,0 +1,220 @@
+/* ---------- User Profile Page ---------- */
+.up-user-profile-page {
+  padding: 2rem;
+  font-family: "Inter", sans-serif;
+  background-color: #fafafa;
+  width: 100vw;
+}
+
+/* --- Header --- */
+.up-user-header {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 1rem;
+}
+
+.up-back-btn {
+  background: none;
+  border: none;
+  color: #4f46e5;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+/* --- Top Section --- */
+.up-user-top {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.up-user-avatar {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 4px solid #4f46e5;
+  object-fit: cover;
+}
+
+.up-user-info {
+  flex: 1;
+}
+
+.up-user-name {
+  font-size: 2rem;
+  color: #1e1e1e;
+  margin-bottom: 0.5rem;
+}
+
+.up-user-details p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #555;
+  margin: 0.25rem 0;
+}
+
+.up-user-icon {
+  color: #4f46e5;
+}
+
+.up-user-bio {
+  margin-top: 1rem;
+  color: #333;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* --- Stats Section --- */
+.up-user-stats {
+  display: flex;
+  justify-content: space-around;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.up-user-stat-card {
+  background: white;
+  border-radius: 10px;
+  padding: 1rem 2rem;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  text-align: center;
+  min-width: 420px;
+}
+
+.up-stat-icon {
+  font-size: 1.5rem;
+  color: #4f46e5;
+}
+
+.up-stat-value {
+  display: block;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1e1e1e;
+}
+
+.up-stat-label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* --- Uploaded Artworks (Horizontal Scroll) --- */
+.up-user-uploads-section {
+  margin-top: 2rem;
+}
+
+.up-user-uploads-section h3 {
+  font-size: 1.5rem;
+  color: #222;
+  margin-bottom: 1rem;
+}
+
+.up-user-uploads-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 12px;
+  padding-bottom: 5px;
+  scroll-behavior: smooth;
+}
+
+.up-user-uploads-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.up-user-uploads-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
+
+.up-user-upload-card {
+ flex-shrink: 0;   /* Prevents card from shrinking */
+  min-width: 600px; /* Ensures each card has a fixed width */
+  min-height: 300px;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.up-user-upload-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.up-image-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.up-image-wrapper img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.up-user-upload-card:hover img {
+  transform: scale(1.05);
+}
+
+.up-upload-content {
+  padding: 8px;
+}
+
+.up-upload-content h3 {
+  font-size: 1rem;
+  margin: 3px 0;
+}
+
+.up-upload-stats {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.up-no-uploads-msg {
+  color: #666;
+  text-align: center;
+  font-style: italic;
+}
+
+.up-card-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-top: 0.5rem;
+}
+
+.g1-like-btn,
+.g1-bookmark-btn {
+  padding: 0.25rem 0.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  background: #f0f0f0;
+  transition: background 0.3s, color 0.3s;
+}
+
+.g1-like-btn.liked {
+  background-color: #ffe6e6;
+  color: red;
+}
+
+.g1-bookmark-btn.bookmarked {
+  background-color: #e6f7ff;
+  color: teal;
+}
+
+.g1-like-btn:hover:not(.liked),
+.g1-bookmark-btn:hover:not(.bookmarked) {
+  background-color: #ddd;
+}

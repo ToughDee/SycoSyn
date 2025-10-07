@@ -33,7 +33,7 @@ const FooterCTA = () => {
             <button className="btn btn-primary" onClick={() => navigate("/auth")}>
               Sign Up Free
             </button>
-            <button className="btn btn-outline">Learn More</button>
+         
           </div>
 
           {/* Social Signup */}
