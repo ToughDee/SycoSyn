@@ -1,6 +1,6 @@
 import mongoose, { isValidObjectId } from "mongoose";
 import { User } from "../models/user.models.js";
-import { Subscription } from "../models/subscription.models.js";
+import { Follow } from "../models/follow.models.js";
 import { APIError } from "../utils/APIError.js";
 import { APIResponse } from "../utils/APIResponse.js";
 import { AsyncHandler } from "../utils/AsyncHandler.js";
@@ -19,22 +19,22 @@ const toggleSubscription = AsyncHandler(async (req, res) => {
     throw new APIError(400, "You cannot subscribe to yourself");
   }
 
-  let subscription = await Subscription.findOne({
-    subscriber: req.user._id,
-    channel: channelId,
+  let subscription = await Follow.findOne({
+    follower: req.user._id,
+    following: channelId,
   });
 
   if (!subscription) {
-    subscription = await Subscription.create({
-      subscriber: req.user._id,
-      channel: channelId,
+    subscription = await Follow.create({
+      follower: req.user._id,
+      following: channelId,
     });
 
     return res
       .status(200)
       .json(new APIResponse(200, {}, "Subscribed successfully"));
   } else {
-    await Subscription.findByIdAndDelete(subscription._id);
+    await Follow.findByIdAndDelete(subscription._id);
 
     return res
       .status(200)
@@ -49,8 +49,8 @@ const getUserChannelSubscribers = AsyncHandler(async (req, res) => {
     throw new APIError(400, "Invalid channelId");
   }
 
-  const subscribers = await Subscription.find({ channel: channelId }).populate(
-    "subscriber",
+  const subscribers = await Follow.find({ following: channelId }).populate(
+    "follower",
     "username avatar"
   );
 
@@ -68,8 +68,8 @@ const getSubscribedChannels = AsyncHandler(async (req, res) => {
     throw new APIError(400, "Invalid subscriberId");
   }
 
-  const channels = await Subscription.find({ subscriber: subscriberId }).populate(
-    "channel",
+  const channels = await Follow.find({ follower: subscriberId }).populate(
+    "following",
     "username avatar"
   );
 

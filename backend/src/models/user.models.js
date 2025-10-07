@@ -26,6 +26,10 @@ const userSchema = new Schema(
     avatar: {
       type: String,
     },
+    bio: {
+      type: String,
+      default: "",
+    },
     coverImage: {
       type: String,
     },
@@ -35,12 +39,14 @@ const userSchema = new Schema(
     },
     refreshToken: {
       type: String,
-
     },
     history: [{
       type: Schema.Types.ObjectId,
       ref: "Art"
-    }]
+    }],
+    location: {
+      type: String,
+    }
   }, { timestamps: true }
 )
 

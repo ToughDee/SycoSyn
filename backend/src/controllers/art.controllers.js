@@ -6,6 +6,35 @@ import { APIResponse } from "../utils/APIResponse.js";
 import { AsyncHandler } from "../utils/AsyncHandler.js";
 import { uploadOnCloudinary, deleteFromCloudinary, getPublicIdFromUrl } from "../utils/cloudinary.js";
 
+
+//id
+//title
+//content
+//likes
+//views
+//uploadDate
+
+const getMyArts = AsyncHandler(async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const arts = await Art.find({ user: userId }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: arts.length,
+      arts,
+    });
+  } catch (error) {
+    console.error("Error fetching user's arts:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch your arts.",
+    });
+  }
+});
+
+
 const getAllArts = AsyncHandler(async (req, res) => {
   const {
     page = 1,
@@ -53,7 +82,7 @@ const getAllArts = AsyncHandler(async (req, res) => {
 });
 
 const publishAnArt = AsyncHandler(async (req, res) => {
-  const { name, caption } = req.body;
+  const { name, caption, tags } = req.body;
   const artFile = req.file?.path;
 
   if (!name || !caption || !artFile) throw new APIError(400, "All fields and art file are required");
@@ -162,6 +191,7 @@ const togglePublishStatus = AsyncHandler(async (req, res) => {
 });
 
 export {
+  getMyArts,
   getAllArts,
   publishAnArt,
   getArtById,

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+    getMyArts,
     deleteArt,
     getAllArts,
     getArtById,
@@ -11,7 +12,7 @@ import {verifyJWT} from "../middlewares/auth.middlewares.js"
 import {upload} from "../middlewares/multer.middlewares.js"
 
 const router = Router();
-// router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
+router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
 router
     .route("/")
@@ -33,5 +34,5 @@ router
     .patch(upload.single("artFile"), updateArt);
 
 router.route("/toggle/publish/:artId").patch(togglePublishStatus);
-
+router.route("/my").get(getMyArts)
 export default router

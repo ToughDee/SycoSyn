@@ -19,7 +19,11 @@ const boardSchema = new Schema
     description: {
       type: String,
       default: ""
-    }
+    },
+    collaborators: [{
+      type: Schema.Types.ObjectId,
+      ref: "User"
+    }]
   }, { timestamps: true }
 )
 

@@ -21,6 +21,9 @@ const artSchema = new Schema
       type: String,
       default: ""
     },
+    tags: [{
+      type: String
+    }],
     likes: {
       type: Number,
       default: 0

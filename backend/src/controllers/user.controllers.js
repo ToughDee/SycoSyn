@@ -85,7 +85,7 @@ const loginUser = AsyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true
+    secure: process.env.PROD === "production"
   }
   console.log("login successful")
   return res
@@ -110,7 +110,7 @@ const logoutUser = AsyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true
+    secure: process.env.PROD === "production"
   }
 
   return res
@@ -147,7 +147,7 @@ const refreshAccessToken = AsyncHandler(async (req, res) => {
 
     const options = {
       httpOnly: true,
-      secure: true
+      secure: process.env.PROD === "production"
     }
 
     res
@@ -192,7 +192,7 @@ const getCurrentUser = AsyncHandler(async (req, res) => {
 })
 
 const updateAccountDetails = AsyncHandler(async (req, res) => {
-  const {email, fullname} = req.body
+  const {email, fullname, location, bio} = req.body
 
   if(!email || !fullname) {
     throw new APIError(408, "All fields are required")
@@ -249,7 +249,6 @@ const updateUserAvatar = AsyncHandler(async (req, res) => {
     .status(200)
     .json(new APIResponse(200, user, "Avatar updated successfully"));
 });
-
 
 const updateUserCoverImage = AsyncHandler(async (req, res) => {
   const coverImageLocalPath = req.file?.path;

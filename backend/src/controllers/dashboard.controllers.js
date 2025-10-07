@@ -1,6 +1,6 @@
 import mongoose from "mongoose"
 import {Art} from "../models/art.models.js"
-import {Subscription} from "../models/subscription.models.js"
+import {Follow} from "../models/follow.models.js"
 import {Like} from "../models/like.models.js"
 import {APIError} from "../utils/APIError.js"
 import {APIResponse} from "../utils/APIResponse.js"
