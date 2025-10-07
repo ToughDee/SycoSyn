@@ -4,20 +4,16 @@ import { UploadsContext } from "../../Store/UploadsContext";
 import "./uploadart.css";
 
 function UploadArtForm() {
-  const { dispatchUploads } = useContext(UploadsContext); // ✅ Use context
+  const { dispatchUploads } = useContext(UploadsContext);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
-
-
-
-
-
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
+  // ✅ Handle file selection
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -28,12 +24,14 @@ function UploadArtForm() {
     }
   };
 
+  // ✅ Remove selected file
   const handleRemoveFile = () => {
     setSelectedFile(null);
     setPreviewUrl("");
   };
 
-  const handleSubmit = (e) => {
+  // ✅ Submit form and post to backend
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!selectedFile || !title) {
@@ -41,29 +39,48 @@ function UploadArtForm() {
       return;
     }
 
-    // ✅ Create new upload object
-    const newUpload = {
-      id: Date.now(),
-      title,
-      image: previewUrl,
-      likes: 0,
-      uploadDate: new Date().toISOString(),
-      description,
-    };
+    try {
+      const formData = new FormData();
+      formData.append("name", title);
+      formData.append("caption", description);
+      formData.append("artFile", selectedFile);
 
-    // ✅ Dispatch ADD_UPLOAD action
-    dispatchUploads({ type: "ADD_UPLOAD", payload: newUpload });
+      const res = await fetch("http://localhost:8000/api/v1/art/", {
+        method: "POST",
+        body: formData,
+        credentials:"include",
+      });
 
-    alert("Upload Successful!");
+      if (!res.ok) throw new Error("Upload failed");
 
-    // Reset form
-    setSelectedFile(null);
-    setPreviewUrl("");
-    setTitle("");
-    setDescription("");
+      const data = await res.json();
 
-    // Redirect to dashboard/user profile
-    navigate("/user-profile");
+      // Dispatch new upload to context
+      const newUpload = {
+        id: data._id,
+        title: data.name,
+        description: data.caption,
+        image: data.content,
+        likes: data.likes || 0,
+        uploadDate: data.createdAt,
+      };
+
+      dispatchUploads({ type: "ADD_UPLOAD", payload: newUpload });
+
+      alert("Upload Successful!");
+
+      // Reset form
+      setSelectedFile(null);
+      setPreviewUrl("");
+      setTitle("");
+      setDescription("");
+
+      // Navigate
+      navigate("/user-profile");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to upload artwork. Try again.");
+    }
   };
 
   const handleClear = () => {
@@ -79,7 +96,6 @@ function UploadArtForm() {
       <form onSubmit={handleSubmit} className="upload-form">
         <div className="form-group">
           <label>Artwork Image *</label>
-
           {!previewUrl ? (
             <div
               className="file-input-wrapper"

@@ -28,18 +28,18 @@ export const UploadsProvider = ({ children }) => {
   const [uploads, dispatchUploads] = useReducer(uploadsReducer, initialUploads);
 
   useEffect(() => {
-    // Dummy API call
+ 
     const fetchUploads = async () => {
       try {
-        const res = await fetch("https://jsonplaceholder.typicode.com/photos?_limit=10");
+        const res = await fetch("http://localhost:8000/api/v1/art/my" ,{credentials:"include"});
         const data = await res.json();
         // Transform data to match your uploads structure
-        const formattedData = data.map((item) => ({
-          id: item.id,
-          title: item.title,
-          artist: "Dummy Artist",
-          image: item.url,
-          likes: Math.floor(Math.random() * 100),
+        const formattedData = data.data.map((item) => ({
+          id: item._id,
+          title: item.name || "Untitled",
+          image: item.content || "",
+          likes: item.likes || 0,
+          uploadDate:item.createdAt,
         }));
         dispatchUploads({ type: "SET_UPLOADS", payload: formattedData });
       } catch (err) {

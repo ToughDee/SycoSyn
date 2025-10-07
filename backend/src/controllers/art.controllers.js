@@ -18,19 +18,12 @@ const getMyArts = AsyncHandler(async (req, res) => {
   try {
     const userId = req.user._id;
 
-    const arts = await Art.find({ user: userId }).sort({ createdAt: -1 });
+    const arts = await Art.find({ owner: userId }).sort({ createdAt: -1 });
 
-    res.status(200).json({
-      success: true,
-      count: arts.length,
-      arts,
-    });
+    res.status(200).json(new APIResponse(200, arts, "arts fetched"));
   } catch (error) {
     console.error("Error fetching user's arts:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch your arts.",
-    });
+    res.status(500).json(new APIError(404, "fetch errorr"));
   }
 });
 
@@ -83,7 +76,7 @@ const getAllArts = AsyncHandler(async (req, res) => {
 
 const publishAnArt = AsyncHandler(async (req, res) => {
   const { name, caption, tags } = req.body;
-  const artFile = req.file?.path;
+  const artFile = req.files?.artFile?.[0]?.path;
 
   if (!name || !caption || !artFile) throw new APIError(400, "All fields and art file are required");
 

@@ -26,13 +26,13 @@ router
         ]),
         publishAnArt
     );
-
+    router.route("/toggle/publish/:artId").patch(togglePublishStatus);
+router.route("/my").get(getMyArts);
 router
     .route("/:artId")
     .get(getArtById)
     .delete(deleteArt)
     .patch(upload.single("artFile"), updateArt);
 
-router.route("/toggle/publish/:artId").patch(togglePublishStatus);
-router.route("/my").get(getMyArts)
+
 export default router
