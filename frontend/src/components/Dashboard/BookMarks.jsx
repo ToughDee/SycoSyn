@@ -5,8 +5,24 @@ import "./BookmarksSection.css";
 const BookmarksSection = () => {
   const { bookmarks, dispatchBookmarks } = useContext(BookmarksContext);
 
-  const handleRemove = (id) => {
-    dispatchBookmarks({ type: "REMOVE_BOOKMARK", payload: id });
+  const handleRemove = async (id) => {
+    try {
+      // 🔹 Send DELETE request to backend
+      const response = await fetch(`http://localhost:8000/api/v1/bookmark/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to remove bookmark from backend");
+        return;
+      }
+
+   
+      dispatchBookmarks({ type: "REMOVE_BOOKMARK", payload: id });
+    } catch (error) {
+      console.error("Error removing bookmark:", error);
+    }
   };
 
   return (

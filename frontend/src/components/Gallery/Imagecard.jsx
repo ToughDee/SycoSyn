@@ -6,43 +6,74 @@ import { useNavigate } from "react-router-dom";
 import { BookmarksContext } from "../../Store/BookmarksContext";
 
 const ImageCard = ({ image }) => {
-  const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(image.likes);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isLiked, setIsLiked] = useState(image.likedByUser || false);
+  const [likesCount, setLikesCount] = useState(image.likes || 0);
+  const [isBookmarked, setIsBookmarked] = useState(image.bookmarkedByUser || false);
+
   const { bookmarks, dispatchBookmarks } = useContext(BookmarksContext);
   const navigate = useNavigate();
 
-  const alreadyBookmarked = bookmarks.some((b) => b.id === image.id);
+  
+ const handleLike = async () => {
+  const newLikedState = !isLiked;
 
-  const handleLike = () => {
-    if (isLiked) {
-      setLikesCount((prev) => prev - 1);
-    } else {
-      setLikesCount((prev) => prev + 1);
+  // Optimistically update UI
+  setIsLiked(newLikedState);
+
+  try {
+    await fetch(`http://localhost:8000/api/v1/like/toggle/${image._id}`, {
+      method: "POST",
+      credentials: "include",
+    });
+    // No need to update likesCount here; backend will handle the actual count
+  } catch (error) {
+    console.error("Error toggling like:", error);
+    // Rollback if API fails
+    setIsLiked(!newLikedState);
+  }
+};
+
+  // ✅ BOOKMARK HANDLER (Backend + Context)
+  const handleBookmark = async () => {
+    const newBookmarkState = !isBookmarked;
+
+    // 🔹 Optimistic update
+    setIsBookmarked(newBookmarkState);
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/art/bookmark/toggle/${image._id}`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to toggle bookmark on server");
+        setIsBookmarked(!newBookmarkState);
+        return;
+      }
+
+      // Update Context for local bookmarking (UI)
+      if (newBookmarkState) {
+        const newBookmark = {
+          id: image.id,
+          title: image.name || "Untitled",
+          artist: image.owner.username || "Unknown",
+          image: image.content,
+          likes: likesCount,
+        };
+        dispatchBookmarks({ type: "ADD_BOOKMARK", payload: newBookmark });
+      } else {
+        dispatchBookmarks({ type: "REMOVE_BOOKMARK", payload: image.id });
+      }
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
+      setIsBookmarked(!newBookmarkState);
     }
-    setIsLiked(!isLiked);
   };
 
-  const handleBookmark = () => {
-    if (alreadyBookmarked) {
-      dispatchBookmarks({ type: "REMOVE_BOOKMARK", payload: image.id });
-      setIsBookmarked(false);
-    } else {
-      const newBookmark = {
-        id: image.id,
-        title: image.tags.split(",")[0] || "Untitled",
-        artist: image.user || "Unknown",
-        image: image.webformatURL,
-        likes: likesCount,
-      };
-      dispatchBookmarks({ type: "ADD_BOOKMARK", payload: newBookmark });
-      setIsBookmarked(true);
-    }
-  };
-
+  // ✅ User Profile Navigation
   const handleUserClick = () => {
-    // Navigate to user profile page with the userId
-    navigate(`/user/${image.user_id}`);
+    navigate(`/user/${image.owner?._id || image.user_id}`);
   };
 
   return (
@@ -54,22 +85,15 @@ const ImageCard = ({ image }) => {
       <div className="g1-card-content">
         <div className="g1-artist-info" onClick={handleUserClick}>
           <div className="g1-artist-avatar">
-            {image.owner.avatar ? (
+            {image.owner?.avatar ? (
               <img src={image.owner.avatar} alt={image.owner.username} />
             ) : (
-              <span>{image.owner.username?.[0]}</span>
+              <span>{image.owner?.username?.[0]}</span>
             )}
           </div>
-          <span className="g1-artist-name">{image.owner.username}</span>
+          <span className="g1-artist-name">{image.owner?.username}</span>
         </div>
 
-       {/* <div className="g1-tags">
-  {image.tags.slice(0, 5).map((tag, idx) => (
-    <span key={idx} className="g1-tag">
-      {tag}
-    </span>
-  ))}
-</div> */}
         <div className="g1-card-actions">
           <button
             className={`g1-like-btn ${isLiked ? "liked" : ""}`}
@@ -77,10 +101,9 @@ const ImageCard = ({ image }) => {
           >
             <FaHeart /> {likesCount}
           </button>
+
           <button
-            className={`g1-bookmark-btn ${
-              alreadyBookmarked || isBookmarked ? "bookmarked" : ""
-            }`}
+            className={`g1-bookmark-btn ${isBookmarked ? "bookmarked" : ""}`}
             onClick={handleBookmark}
           >
             <BiSolidBookmarkStar />

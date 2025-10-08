@@ -16,7 +16,7 @@ function Gallery() {
     try {
       const params = new URLSearchParams({
         page: 1,
-        limit: 30,
+        limit: 60,
         query: searchTerm,
         category: selectedCategory === "All" ? "" : selectedCategory
       });

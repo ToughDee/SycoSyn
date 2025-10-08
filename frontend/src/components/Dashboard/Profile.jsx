@@ -7,11 +7,12 @@ const ProfileSection = () => {
   const fileInputRef = useRef(null);
 
   const [user, setUser] = useState({
-    name: "",
-    email: "john.doe@example.com",
-    location: "Pune, MH",
+    name: "Your name here",
+    email: "email here ",
+    location: "city,state",
     avatar: "./assets/images/user-prof.webp",
-    bio: "Digital artist passionate about abstract and contemporary art.",
+    bio: "Update bio ",
+    username:"Username",
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -42,25 +43,27 @@ const ProfileSection = () => {
     <div className="profile-card">
       <div className="profile-content">
         {/* LEFT: Avatar */}
-        <div className="profile-left">
-          <div className="profile-avatar-wrapper">
-            <img className="profile-avatar" src={previewAvatar} alt={user.name} />
-            {isEditing && (
-              <>
-                <button className="camera-btn" onClick={handleCameraClick}>
-                  <FaCamera />
-                </button>
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  style={{ display: "none" }}
-                />
-              </>
-            )}
-          </div>
-        </div>
+
+   <div className="profile-left">
+  <div className="profile-avatar-wrapper">
+    <img className="profile-avatar" src={previewAvatar} alt={user.name} />
+    {isEditing && (
+      <>
+        <button className="camera-btn" onClick={handleCameraClick}>
+          <FaCamera />
+        </button>
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          style={{ display: "none" }}
+        />
+      </>
+    )}
+  </div>
+  <h3 className="profile-username-below">{user.username}</h3>
+</div>
 
         {/* RIGHT: Info */}
         <div className="profile-right">

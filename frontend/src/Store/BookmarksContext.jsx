@@ -2,10 +2,10 @@ import { createContext, useReducer, useEffect } from "react";
 
 export const BookmarksContext = createContext();
 
-// ✅ Initial state
+
 const initialBookmarks = [];
 
-// ✅ Reducer
+
 const bookmarksReducer = (state, action) => {
   switch (action.type) {
     case "SET_BOOKMARKS":
@@ -26,16 +26,16 @@ export const BookmarksProvider = ({ children }) => {
   useEffect(() => {
     const fetchBookmarks = async () => {
       try {
-        const res = await fetch("https://jsonplaceholder.typicode.com/photos?_limit=10");
+        const res = await fetch("http://localhost:8000/api/v1/board/bookmarks",{credentials:"include"});
         const data = await res.json();
-        // Format data to match your bookmarks structure
-        const formattedData = data.map((item) => ({
-          id: item.id,
-          title: item.title,
-          artist: "Dummy Artist",
-          image: item.url,
-          likes: Math.floor(Math.random() * 100),
-        }));
+       
+           const formattedData = data.data.map((item) => ({
+        id: item._id,
+        title: item.name || "Untitled",
+        image: item.content || "",
+        likes: item.likes ,
+        artist:item.owner.username,
+      }));
         dispatchBookmarks({ type: "SET_BOOKMARKS", payload: formattedData });
       } catch (err) {
         console.error("Failed to fetch bookmarks:", err);
