@@ -8,6 +8,7 @@ import {
     getUserBoards,
     removeArtFromBoard,
     updateBoard,
+    getBookmarks,
 } from "../controllers/board.controllers.js"
 import {verifyJWT} from "../middlewares/auth.middlewares.js"
 
@@ -16,6 +17,8 @@ const router = Router();
 router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
 router.route("/").post(createBoard)
+
+router.route("/bookmarks").get(getBookmarks)
 
 router
     .route("/:boardId")

@@ -8,8 +8,8 @@ const BookmarksSection = () => {
   const handleRemove = async (id) => {
     try {
       // 🔹 Send DELETE request to backend
-      const response = await fetch(`http://localhost:8000/api/v1/bookmark/${id}`, {
-        method: "DELETE",
+      const response = await fetch(`http://localhost:8000/api/v1/art/bookmark/toggle/${id}`, {
+        method: "POST",
         credentials: "include",
       });
 

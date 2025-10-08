@@ -16,9 +16,11 @@ import UserProfileTest from "./components/Dashboard/Other-user";
 import ArtDetail from "./components/Gallery/Artdetail";
 
 import "./index.css";
+import { AuthProvider } from "./Store/Authcontext";
 
 function App() {
   return (
+    <AuthProvider>
     <UploadsProvider>
       <BookmarksProvider>
         <Router>
@@ -36,6 +38,7 @@ function App() {
         </Router>
       </BookmarksProvider>
     </UploadsProvider>
+    </AuthProvider>
   );
 }
 

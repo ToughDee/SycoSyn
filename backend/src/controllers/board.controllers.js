@@ -4,6 +4,7 @@ import { Art } from "../models/art.models.js";
 import { APIError } from "../utils/APIError.js";
 import { APIResponse } from "../utils/APIResponse.js";
 import { AsyncHandler } from "../utils/AsyncHandler.js";
+import {User} from "../models/user.models.js"
 
 const createBoard = AsyncHandler(async (req, res) => {
   const { name, description } = req.body;
@@ -200,7 +201,43 @@ const addCollaborators = AsyncHandler(async(req, res) => {
     .json(new APIResponse(200, board, "Collaborator added"))
 })
 
+const getBookmarks = AsyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+
+  if (!userId) {
+    throw new APIError(401, "User not authenticated");
+  }
+
+  // Step 1: Get user's bookmarked art IDs
+  const user = await User.findById(userId).select("bookmark").lean();
+  if (!user || !user.bookmark?.length) {
+    return res.status(200).json(new APIResponse(200, [], "No bookmarks found"));
+  }
+
+  // Step 2: Fetch bookmarked arts with owner info
+  const bookmarkedArts = await Art.find({
+    _id: { $in: user.bookmark },
+  })
+    .populate("owner", "username fullname avatar")
+    .sort({ createdAt: -1 })
+    .lean();
+
+  // Step 3: Map results and include likes/views
+  const artsWithStats = bookmarkedArts.map((art) => ({
+    ...art,
+    likes: art.likes || 0,
+    views: art.views || 0,
+    likedByUser: false, // Cannot determine per-user likes without a separate likes collection
+  }));
+
+  // Step 4: Return response
+  return res
+    .status(200)
+    .json(new APIResponse(200, artsWithStats, "Bookmarks fetched successfully"));
+});
+
 export {
+  getBookmarks,
   addCollaborators,
   createBoard,
   getUserBoards,

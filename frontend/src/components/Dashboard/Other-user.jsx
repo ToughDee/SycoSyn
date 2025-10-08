@@ -1,73 +1,67 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   FaArrowLeft,
   FaEnvelope,
   FaMapMarkerAlt,
-  FaCamera,
   FaHeart,
   FaEye,
 } from "react-icons/fa";
 import { BiSolidBookmarkStar } from "react-icons/bi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { BookmarksContext } from "../../Store/BookmarksContext";
 import "./UserProfile.css";
 
-const tempUser = {
-  name: "Sarah Johnson",
-  email: "sarah.johnson@example.com",
-  location: "New York, USA",
-  avatar:
-    "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop",
-  bio: "Digital artist and illustrator passionate about surreal worlds and geometric compositions. 🎨✨",
-  uploadsCount: 12,
-  likesCount: 856,
-  viewsCount: 1200,
-  uploads: [
-    {
-      id: 7,
-      title: "Cosmic Dreams",
-      image:
-        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&h=600&fit=crop",
-      likes: 234,
-      views: 400,
-    },
-    {
-      id: 11,
-      title: "Urban Mirage",
-      image:
-        "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&h=600&fit=crop",
-      likes: 198,
-      views: 320,
-    },
-    {
-      id: 10,
-      title: "Silent Echoes",
-      image:
-        "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800&h=600&fit=crop",
-      likes: 276,
-      views: 500,
-    },
-  ],
-};
-
-const UserProfile = ({ user }) => {
+const UserProfile = () => {
   const navigate = useNavigate();
   const { bookmarks, dispatchBookmarks } = useContext(BookmarksContext);
+  const { userId } = useParams();
 
-  // Initialize upload state with likes and bookmark flags
-  const [uploads, setUploads] = useState(
-    user.uploads.map((upload) => ({
-      ...upload,
-      isLiked: false,
-      likesCount: upload.likes,
-    }))
-  );
+  const [user, setUser] = useState(null);
+  const [uploads, setUploads] = useState([]);
 
- 
-  const handleLike = (id) => {
-    setUploads((prevUploads) =>
-      prevUploads.map((u) =>
-        u.id === id
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:8000/api/v1/user/c/${userId}`,
+          { credentials: "include" }
+        );
+        if (!res.ok) throw new Error("Failed to fetch user");
+        const data = await res.json();
+
+        setUser({
+          name: data.fullname,
+          email: data.email,
+          location: data.location,
+          avatar: data.avatar,
+          bio: data.bio,
+          uploadsCount: data.uploads.length,
+          likesCount: data.likesCount,
+          viewsCount: data.viewsCount,
+        });
+
+        // Initialize uploads with like/bookmark states
+        setUploads(
+          data.uploads.map((upload) => ({
+            ...upload,
+            isLiked: false,
+            likesCount: upload.likes,
+            isBookmarked: bookmarks.some((b) => b.id === upload._id),
+          }))
+        );
+      } catch (err) {
+        console.error(err);
+        alert("Failed to load user profile.");
+      }
+    };
+
+    fetchUser();
+  }, [userId, bookmarks]);
+
+  const handleLike = async (uploadId) => {
+    setUploads((prev) =>
+      prev.map((u) =>
+        u._id === uploadId
           ? {
               ...u,
               isLiked: !u.isLiked,
@@ -76,34 +70,72 @@ const UserProfile = ({ user }) => {
           : u
       )
     );
+
+    try {
+      await fetch(
+        `http://localhost:8000/api/v1/like/toggle/a/${uploadId}`,
+        { method: "POST", credentials: "include" }
+      );
+    } catch (err) {
+      console.error(err);
+      // rollback on failure
+      setUploads((prev) =>
+        prev.map((u) =>
+          u._id === uploadId
+            ? {
+                ...u,
+                isLiked: !u.isLiked,
+                likesCount: u.isLiked ? u.likesCount - 1 : u.likesCount + 1,
+              }
+            : u
+        )
+      );
+    }
   };
 
+  const handleBookmark = async (upload) => {
+    const alreadyBookmarked = bookmarks.some((b) => b.id === upload._id);
 
-  const handleBookmark = (upload) => {
-    const alreadyBookmarked = bookmarks.some((b) => b.id === upload.id);
-
-    if (alreadyBookmarked) {
-      dispatchBookmarks({ type: "REMOVE_BOOKMARK", payload: upload.id });
-    } else {
-      const newBookmark = {
-        id: upload.id,
-        title: upload.title,
-        artist: user.name,
-        image: upload.image,
-        likes: upload.likesCount,
-      };
-      dispatchBookmarks({ type: "ADD_BOOKMARK", payload: newBookmark });
-    }
-
-    // Optional: local feedback for bookmark toggling
     setUploads((prev) =>
       prev.map((u) =>
-        u.id === upload.id
-          ? { ...u, isBookmarked: !alreadyBookmarked }
-          : u
+        u._id === upload._id ? { ...u, isBookmarked: !alreadyBookmarked } : u
       )
     );
+
+    try {
+      await fetch(
+        `http://localhost:8000/api/v1/art/bookmark/toggle/${upload._id}`,
+        { method: "POST", credentials: "include" }
+      );
+
+      if (alreadyBookmarked) {
+        dispatchBookmarks({ type: "REMOVE_BOOKMARK", payload: upload._id });
+      } else {
+        dispatchBookmarks({
+          type: "ADD_BOOKMARK",
+          payload: {
+            id: upload._id,
+            title: upload.name || "Untitled",
+            artist: user.name,
+            image: upload.content,
+            likes: upload.likesCount,
+          },
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      // rollback
+      setUploads((prev) =>
+        prev.map((u) =>
+          u._id === upload._id ? { ...u, isBookmarked: alreadyBookmarked } : u
+        )
+      );
+    }
   };
+
+  const handleUserClick = () => navigate(`/user/${userId}`);
+
+  if (!user) return <p>Loading user profile...</p>;
 
   return (
     <div className="up-user-profile-page">
@@ -150,47 +182,37 @@ const UserProfile = ({ user }) => {
         </div>
       </div>
 
-      {/* Uploaded Artworks (Horizontal Scroll) */}
+      {/* Uploaded Artworks */}
       <div className="up-user-uploads-section">
         <h3>Uploaded Artworks</h3>
-        {uploads && uploads.length > 0 ? (
+        {uploads.length > 0 ? (
           <div className="up-user-uploads-scroll">
-            {uploads.map((upload) => {
-              const alreadyBookmarked = bookmarks.some(
-                (b) => b.id === upload.id
-              );
-
-              return (
-                <div key={upload.id} className="up-user-upload-card">
-                  <div className="up-image-wrapper">
-                    <img src={upload.image} alt={upload.title} />
-                  </div>
-                  <div className="up-upload-content">
-                    <h3>{upload.title}</h3>
-
-                    <div className="up-card-actions">
-                      <button
-                        className={`g1-like-btn ${
-                          upload.isLiked ? "liked" : ""
-                        }`}
-                        onClick={() => handleLike(upload.id)}
-                      >
-                        <FaHeart /> {upload.likesCount}
-                      </button>
-
-                      <button
-                        className={`g1-bookmark-btn ${
-                          alreadyBookmarked ? "bookmarked" : ""
-                        }`}
-                        onClick={() => handleBookmark(upload)}
-                      >
-                        <BiSolidBookmarkStar />
-                      </button>
-                    </div>
+            {uploads.map((upload) => (
+              <div key={upload._id} className="up-user-upload-card">
+                <div className="up-image-wrapper">
+                  <img src={upload.content} alt={upload.name} />
+                </div>
+                <div className="up-upload-content">
+                  <h3>{upload.name}</h3>
+                  <div className="up-card-actions">
+                    <button
+                      className={`g1-like-btn ${upload.isLiked ? "liked" : ""}`}
+                      onClick={() => handleLike(upload._id)}
+                    >
+                      <FaHeart /> {upload.likesCount}
+                    </button>
+                    <button
+                      className={`g1-bookmark-btn ${
+                        upload.isBookmarked ? "bookmarked" : ""
+                      }`}
+                      onClick={() => handleBookmark(upload)}
+                    >
+                      <BiSolidBookmarkStar />
+                    </button>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         ) : (
           <p className="up-no-uploads-msg">No uploads yet.</p>
@@ -200,6 +222,4 @@ const UserProfile = ({ user }) => {
   );
 };
 
-const UserProfileTest = () => <UserProfile user={tempUser} />;
-
-export default UserProfileTest;
+export default UserProfile;

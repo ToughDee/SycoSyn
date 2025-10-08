@@ -1,31 +1,64 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./prof.css";
 import { FaCamera } from "react-icons/fa";
-import { MdEmail, MdLocationOn } from "react-icons/md"; // Import React icons
+import { MdEmail, MdLocationOn } from "react-icons/md";
 
 const ProfileSection = () => {
   const fileInputRef = useRef(null);
 
-  const [user, setUser] = useState({
-    name: "Your name here",
-    email: "email here ",
+  const defaultUser = {
+    name: "Your name here", // frontend internal state
+    email: "email here",
     location: "city,state",
     avatar: "./assets/images/user-prof.webp",
-    bio: "Update bio ",
-    username:"Username",
-  });
+    bio: "Update bio",
+    username: "Username",
+  };
 
+  const [user, setUser] = useState(defaultUser);
   const [isEditing, setIsEditing] = useState(false);
-  const [previewAvatar, setPreviewAvatar] = useState(user.avatar);
+  const [previewAvatar, setPreviewAvatar] = useState(defaultUser.avatar);
+  const [selectedFile, setSelectedFile] = useState(null); // For avatar upload
+
+  // Fetch current user
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/api/v1/user/current-user", {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Failed to fetch user");
+        const data = await res.json();
+        const currentUser = data.data;
+
+        setUser((prev) => ({
+          ...prev,
+          name: currentUser.fullname || prev.name, // backend fullname → frontend name
+          email: currentUser.email || prev.email,
+          location: currentUser.location || prev.location,
+          avatar: currentUser.avatar || prev.avatar,
+          bio: currentUser.bio || prev.bio,
+          username: currentUser.username || prev.username,
+        }));
+
+        setPreviewAvatar(currentUser.avatar || defaultUser.avatar);
+      } catch (err) {
+        console.error("Failed to fetch current user:", err);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
 
   const handleEditClick = () => {
-    setIsEditing(!isEditing);
+    setIsEditing(true);
     setPreviewAvatar(user.avatar);
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setSelectedFile(file); // Save file for PATCH request
       const reader = new FileReader();
       reader.onloadend = () => setPreviewAvatar(reader.result);
       reader.readAsDataURL(file);
@@ -34,36 +67,86 @@ const ProfileSection = () => {
 
   const handleCameraClick = () => fileInputRef.current.click();
 
-  const handleSave = () => {
-    setUser({ ...user, avatar: previewAvatar });
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      // 🔹 Update avatar first if changed
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("avatar", selectedFile);
+
+        const avatarRes = await fetch("http://localhost:8000/api/v1/user/avatar", {
+          method: "PATCH",
+          credentials: "include",
+          body: formData,
+        });
+
+        if (!avatarRes.ok) throw new Error("Failed to update avatar");
+        const avatarData = await avatarRes.json();
+        setUser((prev) => ({ ...prev, avatar: avatarData.data.avatar }));
+      }
+
+      // 🔹 Update other user details
+      const userDetails = {
+        fullname: user.name, // map frontend name → backend fullname
+        email: user.email,
+        location: user.location,
+        bio: user.bio,
+      };
+
+      const detailsRes = await fetch("http://localhost:8000/api/v1/user/update-account", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userDetails),
+      });
+
+      if (!detailsRes.ok) throw new Error("Failed to update user details");
+
+      const updatedUser = await detailsRes.json();
+      setUser((prev) => ({
+        ...prev,
+        name: updatedUser.data.fullname, // backend fullname → frontend name
+        email: updatedUser.data.email,
+        location: updatedUser.data.location,
+        bio: updatedUser.data.bio,
+        avatar: updatedUser.data.avatar || prev.avatar,
+      }));
+
+      setIsEditing(false);
+      setSelectedFile(null);
+      setPreviewAvatar(updatedUser.data.avatar || previewAvatar);
+
+      alert("Profile updated successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save changes. Please try again.");
+    }
   };
 
   return (
     <div className="profile-card">
       <div className="profile-content">
         {/* LEFT: Avatar */}
-
-   <div className="profile-left">
-  <div className="profile-avatar-wrapper">
-    <img className="profile-avatar" src={previewAvatar} alt={user.name} />
-    {isEditing && (
-      <>
-        <button className="camera-btn" onClick={handleCameraClick}>
-          <FaCamera />
-        </button>
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          style={{ display: "none" }}
-        />
-      </>
-    )}
-  </div>
-  <h3 className="profile-username-below">{user.username}</h3>
-</div>
+        <div className="profile-left">
+          <div className="profile-avatar-wrapper">
+            <img className="profile-avatar" src={previewAvatar} alt={user.name} />
+            {isEditing && (
+              <>
+                <button className="camera-btn" onClick={handleCameraClick}>
+                  <FaCamera />
+                </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  style={{ display: "none" }}
+                />
+              </>
+            )}
+          </div>
+          <h3 className="profile-username-below">{user.username}</h3>
+        </div>
 
         {/* RIGHT: Info */}
         <div className="profile-right">
