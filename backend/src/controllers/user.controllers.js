@@ -2,6 +2,7 @@ import {AsyncHandler} from '../utils/AsyncHandler.js'
 import {APIError} from '../utils/APIError.js'
 import {APIResponse} from '../utils/APIResponse.js'
 import {uploadOnCloudinary, deleteFromCloudinary, getPublicIdFromUrl} from '../utils/cloudinary.js'
+import {Art} from '../models/art.models.js'
 import {User} from '../models/user.models.js'
 import jwt from 'jsonwebtoken'
 import mongoose from 'mongoose'
@@ -289,67 +290,110 @@ const updateUserCoverImage = AsyncHandler(async (req, res) => {
     .json(new APIResponse(200, user, "Cover image updated successfully"));
 });
 
-
 const getUserChannelProfile = AsyncHandler(async (req, res) => {
-  const { username } = req.params;
+  const { userId } = req.params;
+  const currentUserId = req.user?._id;
 
-  if (!username?.trim()) {
-    throw new APIError(400, "Username is required");
+  // ✅ Validate userId
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    throw new APIError(400, "A valid userId is required");
   }
 
-  const channel = await User.aggregate([
-    { $match: { username: username.toLowerCase() } },
+  // 🧩 Step 1: Get user + followers/following info
+  const userAgg = await User.aggregate([
+    { $match: { _id: new mongoose.Types.ObjectId(userId) } },
+
+    // Followers: users who follow this person
     {
       $lookup: {
-        from: "subscriptions",
+        from: "follows",
         localField: "_id",
-        foreignField: "channel",
-        as: "subscribers",
+        foreignField: "following",
+        as: "followers",
       },
     },
+    // Following: users this person follows
     {
       $lookup: {
-        from: "subscriptions",
+        from: "follows",
         localField: "_id",
-        foreignField: "subscriber",
-        as: "subscribedTo",
+        foreignField: "follower",
+        as: "following",
       },
     },
+
+    // Add counts + isFollowed check
     {
       $addFields: {
-        subscribersCount: { $size: "$subscribers" },
-        channelsSubscribedToCount: { $size: "$subscribedTo" },
-        isSubscribed: {
-          $cond: {
-            if: {
-              $in: [req.user?._id, "$subscribers.subscriber"],
-            },
-            then: true,
-            else: false,
-          },
-        },
+        followersCount: { $size: "$followers" },
+        followingCount: { $size: "$following" },
+        isFollowed: currentUserId
+          ? { $in: [new mongoose.Types.ObjectId(currentUserId), "$followers.follower"] }
+          : false,
       },
     },
+
+    // Remove sensitive info
     {
       $project: {
-        username: 1,
-        fullname: 1,
-        avatar: 1,
-        coverImage: 1,
-        subscribersCount: 1,
-        channelsSubscribedToCount: 1,
-        isSubscribed: 1,
+        password: 0,
+        refreshToken: 0,
+        __v: 0,
       },
     },
   ]);
 
-  if (!channel?.length) {
-    throw new APIError(404, "Channel not found");
+  if (!userAgg?.length) {
+    throw new APIError(404, "User not found");
   }
 
+  const user = userAgg[0];
+
+  // 🧩 Step 2: Fetch all uploads (arts) by this user
+  const uploads = await Art.find({ owner: user._id })
+    .sort({ createdAt: -1 })
+    .populate("owner", "username avatar fullname")
+    .lean();
+
+  // 🧩 Step 3: Calculate totals
+  const totalUploads = uploads.length;
+  const totalLikes = uploads.reduce(
+    (sum, art) => sum + (Array.isArray(art.likes) ? art.likes.length : 0),
+    0
+  );
+  const totalViews = uploads.reduce((sum, art) => sum + (art.views || 0), 0);
+
+  // 🧩 Step 4: Build final response object
+  const responseData = {
+    user: {
+      _id: user._id,
+      username: user.username,
+      fullname: user.fullname,
+      email: user.email,
+      avatar: user.avatar,
+      coverImage: user.coverImage,
+      bio: user.bio,
+      location: user.location,
+      followersCount: user.followersCount,
+      followingCount: user.followingCount,
+      isFollowed: user.isFollowed,
+      bookmark: user.bookmark,
+      history: user.history,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    },
+    totalUploads,
+    totalLikes,
+    totalViews,
+    uploads,
+  };
+
+  // 🧩 Step 5: Send response
   return res
     .status(200)
-    .json(new APIResponse(200, channel[0], "User channel profile fetched successfully"));
+    .json(
+      new APIResponse(200, responseData, "User channel profile fetched successfully")
+    );
 });
 
 const getWatchHistory = AsyncHandler(async (req, res) => {
