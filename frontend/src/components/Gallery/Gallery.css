@@ -267,3 +267,40 @@
   background-color: #ddd;
 }
 
+
+
+.ad-container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+
+.ad-image-section {
+  flex: 1.2;
+}
+
+.ad-full-image {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.ad-info-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ad-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: gray;
+}
+
+.ad-comments {
+  margin-top: 20px;
+  border-top: 1px solid #ddd;
+  padding-top: 10px;
+}

@@ -2,10 +2,8 @@ import { createContext, useReducer, useEffect } from "react";
 
 export const UploadsContext = createContext();
 
-// ✅ Initial state
 const initialUploads = [];
 
-// ✅ Reducer
 const uploadsReducer = (state, action) => {
   switch (action.type) {
     case "SET_UPLOADS":
@@ -23,35 +21,37 @@ const uploadsReducer = (state, action) => {
   }
 };
 
-// ✅ Provider
 export const UploadsProvider = ({ children }) => {
   const [uploads, dispatchUploads] = useReducer(uploadsReducer, initialUploads);
 
-  useEffect(() => {
- 
-    const fetchUploads = async () => {
-      try {
-        const res = await fetch("http://localhost:8000/api/v1/art/my" ,{credentials:"include"});
-        const data = await res.json();
-        // Transform data to match your uploads structure
-        const formattedData = data.data.map((item) => ({
-          id: item._id,
-          title: item.name || "Untitled",
-          image: item.content || "",
-          likes: item.likes || 0,
-          uploadDate:item.createdAt,
-        }));
-        dispatchUploads({ type: "SET_UPLOADS", payload: formattedData });
-      } catch (err) {
-        console.error("Failed to fetch uploads:", err);
-      }
-    };
+  // ✅ Function to fetch uploads (can be reused)
+  const fetchUploads = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/api/v1/art/my", {
+        credentials: "include",
+      });
+      const data = await res.json();
 
+      const formattedData = data.data.map((item) => ({
+        id: item._id,
+        title: item.name || "Untitled",
+        image: item.content || "",
+        likes: item.likes || 0,
+        uploadDate: item.createdAt,
+      }));
+
+      dispatchUploads({ type: "SET_UPLOADS", payload: formattedData });
+    } catch (err) {
+      console.error("Failed to fetch uploads:", err);
+    }
+  };
+
+  useEffect(() => {
     fetchUploads();
   }, []);
 
   return (
-    <UploadsContext.Provider value={{ uploads, dispatchUploads }}>
+    <UploadsContext.Provider value={{ uploads, dispatchUploads, fetchUploads }}>
       {children}
     </UploadsContext.Provider>
   );
