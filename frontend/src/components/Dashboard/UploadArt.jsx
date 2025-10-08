@@ -4,11 +4,12 @@ import { UploadsContext } from "../../Store/UploadsContext";
 import "./uploadart.css";
 
 function UploadArtForm() {
-  const { dispatchUploads } = useContext(UploadsContext);
+  const { dispatchUploads, fetchUploads } = useContext(UploadsContext);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
@@ -40,6 +41,8 @@ function UploadArtForm() {
     }
 
     try {
+      setIsUploading(true);
+
       const formData = new FormData();
       formData.append("name", title);
       formData.append("caption", description);
@@ -48,24 +51,25 @@ function UploadArtForm() {
       const res = await fetch("http://localhost:8000/api/v1/art/", {
         method: "POST",
         body: formData,
-        credentials:"include",
+        credentials: "include",
       });
 
       if (!res.ok) throw new Error("Upload failed");
-
       const data = await res.json();
 
-      // Dispatch new upload to context
+      const art = data.data?.art || data.data || data;
+
       const newUpload = {
-        id: data._id,
-        title: data.name,
-        description: data.caption,
-        image: data.content,
-        likes: data.likes || 0,
-        uploadDate: data.createdAt,
+        id: art._id,
+        title: art.name,
+        description: art.caption,
+        image: art.content,
+        likes: art.likes || 0,
+        uploadDate: art.createdAt,
       };
 
       dispatchUploads({ type: "ADD_UPLOAD", payload: newUpload });
+      await fetchUploads();
 
       alert("Upload Successful!");
 
@@ -75,11 +79,12 @@ function UploadArtForm() {
       setTitle("");
       setDescription("");
 
-      // Navigate
       navigate("/user-profile");
     } catch (err) {
       console.error(err);
       alert("Failed to upload artwork. Try again.");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -92,7 +97,27 @@ function UploadArtForm() {
 
   return (
     <div className="upload-form-container">
+      {/* ✅ Uploading Overlay */}
+      {isUploading && (
+        <div className="uploading-overlay">
+          <div className="uploading-box">
+            <p>Uploading your artwork...</p>
+            <div className="spinner"></div>
+          </div>
+        </div>
+      )}
+
+  
+      <button
+        type="button"
+        className="btn-back1"
+        onClick={() => navigate("/user-profile")}
+      >
+        ← Back
+      </button>
+
       <h2>Upload New Artwork</h2>
+
       <form onSubmit={handleSubmit} className="upload-form">
         <div className="form-group">
           <label>Artwork Image *</label>
