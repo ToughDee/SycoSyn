@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+    toggleBookmark,
     getMyArts,
     deleteArt,
     getAllArts,
@@ -28,6 +29,7 @@ router
     );
     router.route("/toggle/publish/:artId").patch(togglePublishStatus);
 router.route("/my").get(getMyArts);
+router.route("/bookmark/toggle/:artId").post(toggleBookmark)
 router
     .route("/:artId")
     .get(getArtById)

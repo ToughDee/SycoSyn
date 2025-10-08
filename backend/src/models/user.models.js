@@ -45,6 +45,10 @@ const userSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Art"
     }],
+    bookmark: [{
+      type: Schema.Types.ObjectId,
+      ref: "Art"
+    }],
     location: {
       type: String,
       default: "City, Country"

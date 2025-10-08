@@ -7,7 +7,6 @@ import {AsyncHandler} from "../utils/AsyncHandler.js"
 
 const toggleArtLike = AsyncHandler(async (req, res) => {
     const {artId} = req.params
-    //TODO: toggle like on video
     if(!artId || !isValidObjectId(artId)) {
         throw new APIError(402, "invalid artId")
     }
