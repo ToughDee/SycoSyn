@@ -46,12 +46,29 @@ export const UploadsProvider = ({ children }) => {
     }
   };
 
+  const deleteUpload = async (id) => {
+  try {
+    const res = await fetch(`http://localhost:8000/api/v1/art/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to delete upload");
+    }
+
+    dispatchUploads({ type: "DELETE_UPLOAD", payload: id });
+  } catch (err) {
+    console.error("Error deleting upload:", err);
+  }
+};
+
   useEffect(() => {
     fetchUploads();
   }, []);
 
   return (
-    <UploadsContext.Provider value={{ uploads, dispatchUploads, fetchUploads }}>
+    <UploadsContext.Provider value={{ uploads, dispatchUploads, fetchUploads, deleteUpload}}>
       {children}
     </UploadsContext.Provider>
   );
