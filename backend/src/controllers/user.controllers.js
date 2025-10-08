@@ -4,6 +4,7 @@ import {APIResponse} from '../utils/APIResponse.js'
 import {uploadOnCloudinary, deleteFromCloudinary, getPublicIdFromUrl} from '../utils/cloudinary.js'
 import {User} from '../models/user.models.js'
 import jwt from 'jsonwebtoken'
+import mongoose from 'mongoose'
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -194,7 +195,7 @@ const getCurrentUser = AsyncHandler(async (req, res) => {
 const updateAccountDetails = AsyncHandler(async (req, res) => {
   const {email, fullname, location, bio} = req.body
 
-  if(!email || !fullname) {
+  if(!email || !fullname || !location || !bio) {
     throw new APIError(408, "All fields are required")
   }
 
@@ -203,7 +204,9 @@ const updateAccountDetails = AsyncHandler(async (req, res) => {
     {
       $set: {
         fullname: fullname,
-        email: email
+        email: email,
+        location: location,
+        bio: bio
       }
     },
     { new: true }

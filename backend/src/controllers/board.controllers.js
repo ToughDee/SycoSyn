@@ -69,6 +69,13 @@ const addArtToBoard = AsyncHandler(async (req, res) => {
   const board = await Board.findById(boardId);
   if (!board) throw new APIError(404, "Board not found");
 
+  if (
+    board.owner.toString() !== req.user._id.toString() &&
+    !board.collaborators.some(id => id.toString() === req.user._id.toString())
+  ) {
+    throw new APIError(403, "Access denied: not authorized for this board");
+  }
+
   const art = await Art.findById(artId);
   if (!art) throw new APIError(404, "Art not found");
 
@@ -94,6 +101,13 @@ const removeArtFromBoard = AsyncHandler(async (req, res) => {
   const board = await Board.findById(boardId);
   if (!board) throw new APIError(404, "Board not found");
 
+  if (
+    board.owner.toString() !== req.user._id.toString() &&
+    !board.collaborators.some(id => id.toString() === req.user._id.toString())
+  ) {
+    throw new APIError(403, "Access denied: not authorized for this board");
+  }
+
   board.arts = board.arts.filter(
     (id) => id.toString() !== artId.toString()
   );
@@ -115,6 +129,10 @@ const deleteBoard = AsyncHandler(async (req, res) => {
   const board = await Board.findById(boardId);
   if (!board) throw new APIError(404, "Board not found");
 
+  if (board.owner.toString() !== req.user._id.toString()) {
+    throw new APIError(403, "Access denied: not authorized for this board");
+  }
+
   await board.deleteOne();
 
   return res
@@ -133,6 +151,13 @@ const updateBoard = AsyncHandler(async (req, res) => {
   const board = await Board.findById(boardId);
   if (!board) throw new APIError(404, "Board not found");
 
+  if (
+    board.owner.toString() !== req.user._id.toString() &&
+    !board.collaborators.some(id => id.toString() === req.user._id.toString())
+  ) {
+    throw new APIError(403, "Access denied: not authorized for this board");
+  }
+
   if (name) board.name = name;
   if (description) board.description = description;
 
@@ -143,7 +168,40 @@ const updateBoard = AsyncHandler(async (req, res) => {
     .json(new APIResponse(200, board, "Board updated successfully"));
 });
 
+const addCollaborators = AsyncHandler(async(req, res) => {
+  const {boardId, userId} = req.params
+
+  if(!isValidObjectId(boardId) || !isValidObjectId(userId)) {
+    throw new APIError(400, "Invalid userId or boardId")
+  }
+
+  if(!boardId || !userId) {
+    throw new APIError(404, "boardId or userId not found")
+  }
+
+  const board = await Board.findById(boardId)
+  if(!board) {
+    throw new APIError(404, "Board not found")
+  }
+
+  if(req.user?._id.toString() !== board?.owner.toString()) {
+    throw new APIError(403, "Unauthorised request!")
+  }
+
+  if (board.collaborators.some(id => id.toString() === userId.toString())) {
+    throw new APIError(400, "User is already a collaborator");
+  }
+
+  board.collaborators.push(userId)
+  await board.save()
+
+  res
+    .status(200)
+    .json(new APIResponse(200, board, "Collaborator added"))
+})
+
 export {
+  addCollaborators,
   createBoard,
   getUserBoards,
   getBoardById,

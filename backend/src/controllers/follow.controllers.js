@@ -5,51 +5,51 @@ import { APIError } from "../utils/APIError.js";
 import { APIResponse } from "../utils/APIResponse.js";
 import { AsyncHandler } from "../utils/AsyncHandler.js";
 
-const toggleSubscription = AsyncHandler(async (req, res) => {
-  const { channelId } = req.params;
+const toggleFollow = AsyncHandler(async (req, res) => {
+  const { profileId } = req.params;
 
-  if (!isValidObjectId(channelId)) {
-    throw new APIError(400, "Invalid channelId");
+  if (!isValidObjectId(profileId)) {
+    throw new APIError(400, "Invalid profileId");
   }
 
-  const channel = await User.findById(channelId);
-  if (!channel) throw new APIError(404, "Channel not found");
+  const profile = await User.findById(profileId);
+  if (!profile) throw new APIError(404, "Profile not found");
 
-  if (req.user._id.toString() === channelId.toString()) {
-    throw new APIError(400, "You cannot subscribe to yourself");
+  if (req.user._id.toString() === profileId.toString()) {
+    throw new APIError(400, "You cannot follow yourself");
   }
 
-  let subscription = await Follow.findOne({
+  let follow = await Follow.findOne({
     follower: req.user._id,
-    following: channelId,
+    following: profileId,
   });
 
-  if (!subscription) {
-    subscription = await Follow.create({
+  if (!follow) {
+    follow = await Follow.create({
       follower: req.user._id,
-      following: channelId,
+      following: profileId,
     });
 
     return res
       .status(200)
-      .json(new APIResponse(200, {}, "Subscribed successfully"));
+      .json(new APIResponse(200, {}, "Followed successfully"));
   } else {
-    await Follow.findByIdAndDelete(subscription._id);
+    await Follow.findByIdAndDelete(follow._id);
 
     return res
       .status(200)
-      .json(new APIResponse(200, {}, "Unsubscribed successfully"));
+      .json(new APIResponse(200, {}, "Unfollowed successfully"));
   }
 });
 
-const getUserChannelSubscribers = AsyncHandler(async (req, res) => {
-  const { channelId } = req.params;
+const getUserFollowers = AsyncHandler(async (req, res) => {
+  const { profileId } = req.params;
 
-  if (!isValidObjectId(channelId)) {
-    throw new APIError(400, "Invalid channelId");
+  if (!isValidObjectId(profileId)) {
+    throw new APIError(400, "Invalid profileId");
   }
 
-  const subscribers = await Follow.find({ following: channelId }).populate(
+  const followers = await Follow.find({ following: profileId }).populate(
     "follower",
     "username avatar"
   );
@@ -57,18 +57,18 @@ const getUserChannelSubscribers = AsyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new APIResponse(200, subscribers, "Channel subscribers fetched successfully")
+      new APIResponse(200, followers, "User followers fetched successfully")
     );
 });
 
-const getSubscribedChannels = AsyncHandler(async (req, res) => {
-  const { subscriberId } = req.params;
+const getUserFollowings = AsyncHandler(async (req, res) => {
+  const { profileId } = req.params;
 
-  if (!isValidObjectId(subscriberId)) {
-    throw new APIError(400, "Invalid subscriberId");
+  if (!isValidObjectId(profileId)) {
+    throw new APIError(400, "Invalid profileId");
   }
 
-  const channels = await Follow.find({ follower: subscriberId }).populate(
+  const channels = await Follow.find({ follower: profileId }).populate(
     "following",
     "username avatar"
   );
@@ -76,12 +76,12 @@ const getSubscribedChannels = AsyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new APIResponse(200, channels, "Subscribed channels fetched successfully")
+      new APIResponse(200, channels, "Followings fetched successfully")
     );
 });
 
 export {
-  toggleSubscription,
-  getUserChannelSubscribers,
-  getSubscribedChannels,
+  toggleFollow,
+  getUserFollowers,
+  getUserFollowings,
 };

@@ -75,7 +75,7 @@ const getAllArts = AsyncHandler(async (req, res) => {
 });
 
 const publishAnArt = AsyncHandler(async (req, res) => {
-  const { name, caption, tags } = req.body;
+  const { name, caption } = req.body;
   const artFile = req.files?.artFile?.[0]?.path;
 
   if (!name || !caption || !artFile) throw new APIError(400, "All fields and art file are required");

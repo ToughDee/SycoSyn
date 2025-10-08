@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+    addCollaborators,
     addArtToBoard,
     createBoard,
     deleteBoard,
@@ -20,7 +21,9 @@ router
     .route("/:boardId")
     .get(getBoardById)
     .patch(updateBoard)
-    .delete(deleteBoard);
+    .delete(deleteBoard)
+
+router.route("/collaborate/:boardId/:userId").post(addCollaborators)
 
 router.route("/add/:artId/:boardId").patch(addArtToBoard);
 router.route("/remove/:artId/:boardId").patch(removeArtFromBoard);

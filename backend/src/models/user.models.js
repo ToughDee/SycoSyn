@@ -16,6 +16,7 @@ const userSchema = new Schema(
       type: String,
       trim: true,
       indexed: true,
+      default: "User123"
     },
     email: {
       type: String,
@@ -28,7 +29,7 @@ const userSchema = new Schema(
     },
     bio: {
       type: String,
-      default: "",
+      default: "...",
     },
     coverImage: {
       type: String,
@@ -46,6 +47,7 @@ const userSchema = new Schema(
     }],
     location: {
       type: String,
+      default: "City, Country"
     }
   }, { timestamps: true }
 )
