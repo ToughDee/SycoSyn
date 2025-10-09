@@ -202,7 +202,20 @@ const getArtById = AsyncHandler(async (req, res) => {
   art.views++;
   await art.save();
 
-  return res.status(200).json(new APIResponse(200, art, "Art fetched successfully"));
+  const like = await Like.findOne({ likedBy: req.user._id, art: art._id });
+  const likedByUser = !!like; // simpler boolean conversion
+
+  const isBookmarked = req.user.bookmark.some(
+    (x) => x.toString() === art._id.toString()
+  );
+
+  const data = {
+    art,
+    likedByUser,
+    isBookmarked
+  }
+
+  return res.status(200).json(new APIResponse(200, data, "Art fetched successfully"));
 });
 
 const updateArt = AsyncHandler(async (req, res) => {

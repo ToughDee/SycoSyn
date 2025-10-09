@@ -13,6 +13,11 @@ const createBoard = AsyncHandler(async (req, res) => {
     throw new APIError(400, "Name and description are required");
   }
 
+  const existingBoard = await Board.findOne({ name: name })
+  if(existingBoard) {
+    throw new APIError(400, "Board already exists")
+  }
+
   const board = await Board.create({
     owner: req.user?._id,
     name,

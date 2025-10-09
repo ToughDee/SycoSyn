@@ -4,6 +4,7 @@ import {APIResponse} from '../utils/APIResponse.js'
 import {uploadOnCloudinary, deleteFromCloudinary, getPublicIdFromUrl} from '../utils/cloudinary.js'
 import {Art} from '../models/art.models.js'
 import {User} from '../models/user.models.js'
+import { Like } from '../models/like.models.js'
 import jwt from 'jsonwebtoken'
 import mongoose from 'mongoose'
 
@@ -292,103 +293,65 @@ const updateUserCoverImage = AsyncHandler(async (req, res) => {
 
 const getUserChannelProfile = AsyncHandler(async (req, res) => {
   const { userId } = req.params;
-  const currentUserId = req.user?._id;
 
   // ✅ Validate userId
   if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
     throw new APIError(400, "A valid userId is required");
   }
 
-  // 🧩 Step 1: Get user + followers/following info
-  const userAgg = await User.aggregate([
-    { $match: { _id: new mongoose.Types.ObjectId(userId) } },
+  // ✅ Fetch the user (excluding sensitive data)
+  const user = await User.findById(userId)
+    .select("username fullname avatar")
+    .lean();
 
-    // Followers: users who follow this person
-    {
-      $lookup: {
-        from: "follows",
-        localField: "_id",
-        foreignField: "following",
-        as: "followers",
-      },
-    },
-    // Following: users this person follows
-    {
-      $lookup: {
-        from: "follows",
-        localField: "_id",
-        foreignField: "follower",
-        as: "following",
-      },
-    },
-
-    // Add counts + isFollowed check
-    {
-      $addFields: {
-        followersCount: { $size: "$followers" },
-        followingCount: { $size: "$following" },
-        isFollowed: currentUserId
-          ? { $in: [new mongoose.Types.ObjectId(currentUserId), "$followers.follower"] }
-          : false,
-      },
-    },
-
-    // Remove sensitive info
-    {
-      $project: {
-        password: 0,
-        refreshToken: 0,
-        __v: 0,
-      },
-    },
-  ]);
-
-  if (!userAgg?.length) {
+  if (!user) {
     throw new APIError(404, "User not found");
   }
 
-  const user = userAgg[0];
-
-  // 🧩 Step 2: Fetch all uploads (arts) by this user
+  // ✅ Fetch all uploads by this user
   const uploads = await Art.find({ owner: user._id })
     .sort({ createdAt: -1 })
     .populate("owner", "username avatar fullname")
     .lean();
 
-  // 🧩 Step 3: Calculate totals
+  // ✅ Handle logged-in user's likes and bookmarks
+  let likedArtIds = new Set();
+  let userBookmarks = [];
+
+  if (req.user) {
+    // All likes by current logged-in user
+    const userLikes = await Like.find({ likedBy: req.user._id })
+      .select("art")
+      .lean();
+
+    likedArtIds = new Set(userLikes.map((like) => like.art.toString()));
+
+    // User's bookmarks (already available in req.user)
+    userBookmarks = (req.user.bookmark || []).map((b) => b.toString());
+  }
+
+  // ✅ Add likedByUser & isBookmarked flags to each upload
+  const uploadsWithFlags = uploads.map((art) => ({
+    ...art,
+    likedByUser: likedArtIds.has(art._id.toString()),
+    isBookmarked: userBookmarks.includes(art._id.toString()),
+  }));
+
+  // ✅ Calculate totals
   const totalUploads = uploads.length;
-  const totalLikes = uploads.reduce(
-    (sum, art) => sum + (Array.isArray(art.likes) ? art.likes.length : 0),
-    0
-  );
+  const totalLikes = uploads.reduce((sum, art) => sum + (art.likes || 0), 0);
   const totalViews = uploads.reduce((sum, art) => sum + (art.views || 0), 0);
 
-  // 🧩 Step 4: Build final response object
+  // ✅ Build final response
   const responseData = {
-    user: {
-      _id: user._id,
-      username: user.username,
-      fullname: user.fullname,
-      email: user.email,
-      avatar: user.avatar,
-      coverImage: user.coverImage,
-      bio: user.bio,
-      location: user.location,
-      followersCount: user.followersCount,
-      followingCount: user.followingCount,
-      isFollowed: user.isFollowed,
-      bookmark: user.bookmark,
-      history: user.history,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    },
+    user,
     totalUploads,
     totalLikes,
     totalViews,
-    uploads,
+    uploads: uploadsWithFlags,
   };
 
-  // 🧩 Step 5: Send response
+  // ✅ Send response
   return res
     .status(200)
     .json(

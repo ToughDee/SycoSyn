@@ -55,7 +55,7 @@ const addComment = AsyncHandler(async (req, res) => {
         content,
       })
 
-      const createdComment = await Comment.findById(comment._id)
+      const createdComment = await Comment.findById(comment._id).populate("owner", "username avatar")
       if(!createdComment) {
         throw new APIError(400, "Comment was not created")
       }
