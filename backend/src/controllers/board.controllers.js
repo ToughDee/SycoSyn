@@ -31,10 +31,14 @@ const getUserBoards = AsyncHandler(async (req, res) => {
     throw new APIError(400, "Invalid userId");
   }
 
-  const boards = await Board.find({ owner: userId }).populate(
-    "arts",
-    "name content caption"
-  );
+  const boards = await Board.find({ owner: userId }).populate({
+    path: "arts",
+    select: "name content owner",
+    populate: {
+      path: "owner",
+      select: "username fullname avatar"
+    }
+  });
 
   return res
     .status(200)
@@ -48,10 +52,14 @@ const getBoardById = AsyncHandler(async (req, res) => {
     throw new APIError(400, "Invalid boardId");
   }
 
-  const board = await Board.findById(boardId).populate(
-    "arts",
-    "name content caption"
-  );
+  const board = await Board.findById(boardId).populate({
+    path: "arts",
+    select: "name content owner",
+    populate: {
+      path: "owner",
+      select: "username fullname avatar"
+    }
+  });
 
   if (!board) throw new APIError(404, "Board not found");
 
