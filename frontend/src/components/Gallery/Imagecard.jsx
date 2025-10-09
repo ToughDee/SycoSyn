@@ -94,9 +94,9 @@ const ImageCard = ({ image }) => {
 
   return (
     <div className="g1-image-card">
-      <div className="g1-image-wrapper">
-        <img src={image.content} alt={image.name} />
-      </div>
+    <div className="g1-image-wrapper" onClick={() => navigate(`/image/${image._id}`)}>
+  <img src={image.content} alt={image.name} />
+</div>
 
       <div className="g1-card-content">
         <div className="g1-artist-info" onClick={handleUserClick}>

@@ -4,18 +4,18 @@ import { UploadsContext } from "../../Store/UploadsContext";
 import "./UploadsSection.css";
 
 const UploadsSection = () => {
-  const { uploads, deleteUpload } = useContext(UploadsContext); // use deleteUpload from context
+  const { uploads, deleteUpload } = useContext(UploadsContext);
   const navigate = useNavigate();
-  const [deletingId, setDeletingId] = useState(null); // optional: show deleting feedback
+  const [deletingId, setDeletingId] = useState(null);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this artwork?")) return;
 
     try {
-      setDeletingId(id); // show deleting state
-      await deleteUpload(id); // call context function
+      setDeletingId(id);
+      await deleteUpload(id);
     } finally {
-      setDeletingId(null); // reset deleting state
+      setDeletingId(null);
     }
   };
 
@@ -43,7 +43,7 @@ const UploadsSection = () => {
                 <button
                   className="delete-btn"
                   onClick={() => handleDelete(upload.id)}
-                  disabled={deletingId === upload.id} // disable while deleting
+                  disabled={deletingId === upload.id}
                 >
                   {deletingId === upload.id ? "Deleting..." : "🗑 Delete"}
                 </button>
@@ -55,6 +55,7 @@ const UploadsSection = () => {
                 </p>
                 <div className="upload-stats">
                   <span>❤️ {upload.likes || 0}</span>
+                  <span>👁️ {upload.views || 0}</span> {/* Added views */}
                 </div>
               </div>
             </div>

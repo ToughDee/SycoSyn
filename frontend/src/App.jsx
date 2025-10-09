@@ -19,6 +19,9 @@ import "./index.css";
 import { AuthProvider } from "./Store/Authcontext";
 import BoardPage1 from "./components/Dashboard/BoardPage";
 import { BoardsProvider } from "./Store/BoardContext";
+import ImageDetailPage from "./components/Gallery/Detailimage";
+
+
 
 function App() {
   return (
@@ -38,6 +41,7 @@ function App() {
             <Route path="/user/:userId" element={<UserProfileTest />} />
              <Route path="/art/:id" element={<ArtDetail />} />
              <Route path="/boards/:id" element={<BoardPage1 />} />
+             <Route path="/image/:id" element={<ImageDetailPage />} />
           </Routes>
         </Router>
         </BoardsProvider>

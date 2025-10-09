@@ -20,8 +20,7 @@ const StatsCards = () => {
     );
   }, [uploads]);
 
-  // Engagements = likes + views + bookmarks count
-  const totalEngagements = totalLikes + totalViews + bookmarks.length;
+ 
 
   const stats = [
   {

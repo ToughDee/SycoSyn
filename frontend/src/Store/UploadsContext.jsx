@@ -38,6 +38,7 @@ export const UploadsProvider = ({ children }) => {
         image: item.content || "",
         likes: item.likes || 0,
         uploadDate: item.createdAt,
+        views:item.views ||0,
       }));
 
       dispatchUploads({ type: "SET_UPLOADS", payload: formattedData });
