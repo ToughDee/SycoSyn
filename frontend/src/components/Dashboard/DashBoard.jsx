@@ -5,6 +5,7 @@ import StatsCards from "./Stats";
 import ProfileSection from "./Profile";
 import UploadsSection from "./Uploads";
 import BookmarksSection from "./BookMarks";
+import BoardsSection from "./BoardsSection";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -86,6 +87,7 @@ const Dashboard = () => {
           <StatsCards />
           <UploadsSection />
           <BookmarksSection />
+           <BoardsSection /> 
         </div>
       </div>
 

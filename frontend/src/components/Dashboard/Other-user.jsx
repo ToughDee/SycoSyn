@@ -5,7 +5,9 @@ import {
   FaMapMarkerAlt,
   FaHeart,
   FaEye,
+
 } from "react-icons/fa";
+import { FaCamera } from "react-icons/fa";
 import { BiSolidBookmarkStar } from "react-icons/bi";
 import { useNavigate, useParams } from "react-router-dom";
 import { BookmarksContext } from "../../Store/BookmarksContext";
@@ -30,19 +32,19 @@ const UserProfile = () => {
         const data = await res.json();
 
         setUser({
-          name: data.fullname,
-          email: data.email,
-          location: data.location,
-          avatar: data.avatar,
-          bio: data.bio,
-          uploadsCount: data.uploads.length,
-          likesCount: data.likesCount,
-          viewsCount: data.viewsCount,
+          name: data.data.user.fullname,
+          email: data.data.user.email,
+          location: data.data.user.location,
+          avatar: data.data.user.avatar,
+          bio: data.data.user.bio,
+          uploadsCount: data.data.totalUploads,
+          likesCount: data.data.totalLikes,
+          viewsCount: data.data.totalViews,
         });
 
         // Initialize uploads with like/bookmark states
         setUploads(
-          data.uploads.map((upload) => ({
+          data.data.uploads.map((upload) => ({
             ...upload,
             isLiked: false,
             likesCount: upload.likes,

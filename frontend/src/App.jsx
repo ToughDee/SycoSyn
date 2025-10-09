@@ -17,12 +17,15 @@ import ArtDetail from "./components/Gallery/Artdetail";
 
 import "./index.css";
 import { AuthProvider } from "./Store/Authcontext";
+import BoardPage1 from "./components/Dashboard/BoardPage";
+import { BoardsProvider } from "./Store/BoardContext";
 
 function App() {
   return (
     <AuthProvider>
     <UploadsProvider>
       <BookmarksProvider>
+         <BoardsProvider>
         <Router>
           <Routes>
             <Route path="/" element={<LandingPage />} />
@@ -34,8 +37,10 @@ function App() {
             <Route path="/upload-artworks" element={<UploadArtForm />} />
             <Route path="/user/:userId" element={<UserProfileTest />} />
              <Route path="/art/:id" element={<ArtDetail />} />
+             <Route path="/boards/:id" element={<BoardPage1 />} />
           </Routes>
         </Router>
+        </BoardsProvider>
       </BookmarksProvider>
     </UploadsProvider>
     </AuthProvider>
