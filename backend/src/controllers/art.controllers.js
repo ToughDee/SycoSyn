@@ -8,6 +8,149 @@ import { AsyncHandler } from "../utils/AsyncHandler.js";
 import { uploadOnCloudinary, deleteFromCloudinary, getPublicIdFromUrl } from "../utils/cloudinary.js";
 import { esClient } from "../utils/elasticsearch.js";
 
+// const getAllArts = AsyncHandler(async (req, res) => {
+//   const {
+//     page = 1,
+//     limit = 10,
+//     query,
+//     category,
+//     sortBy = "createdAt",
+//     sortType = "desc",
+//     userId,
+//   } = req.query;
+
+//   const from = (page - 1) * limit;
+//   const size = parseInt(limit);
+
+//   let arts = [];
+//   let total = 0;
+//   let source = "MongoDB";
+
+//   // ---------------- Elasticsearch ----------------
+//   try {
+//     const must = query
+//       ? [
+//           {
+//             multi_match: {
+//               query,
+//               fields: ["name^3", "caption", "tags"],
+//               fuzziness: "AUTO",
+//             },
+//           },
+//         ]
+//       : [{ match_all: {} }];
+
+//     const filter = [];
+
+//     // 🔹 Exact category filter using keyword field
+//     if (category && category !== "All") {
+//       filter.push({
+//         term: {
+//           "tags.keyword": category.toLowerCase(),
+//         },
+//       });
+//     }
+
+//     // 🔹 Filter by userId if provided
+//     if (userId) {
+//       filter.push({ term: { owner: userId } });
+//     }
+
+//     const esQuery = {
+//       index: "arts",
+//       from,
+//       size,
+//       sort: [{ [sortBy]: { order: sortType } }],
+//       query: {
+//         bool: {
+//           must,
+//           filter,
+//         },
+//       },
+//     };
+
+//     const result = await esClient.search(esQuery);
+
+//     // ✅ Only use results if total > 0
+//     if (result.hits.total.value > 0) {
+//       arts = result.hits.hits.map((hit) => ({
+//         _id: hit._id,
+//         ...hit._source,
+//       }));
+//       total = result.hits.total.value;
+//       source = "Elasticsearch";
+//     }
+//   } catch (err) {
+//     console.error("❌ Elasticsearch search failed:", err);
+//   }
+
+//   // ---------------- MongoDB Fallback ----------------
+//   if (!arts.length) {
+//     const filter = {};
+//     if (userId) {
+//       if (!isValidObjectId(userId)) throw new APIError(400, "Invalid userId");
+//       filter.owner = userId;
+//     }
+
+//     // 🔹 Category filter for Mongo fallback
+//     if (category && category !== "All") {
+//       filter.tags = { $in: [category.toLowerCase()] };
+//     }
+
+//     const sortOption = { [sortBy]: sortType === "desc" ? -1 : 1 };
+
+//     arts = await Art.find(filter)
+//       .sort(sortOption)
+//       .skip((page - 1) * size)
+//       .limit(size)
+//       .populate("owner", "username avatar");
+
+//     total = await Art.countDocuments(filter);
+//   }
+
+//   // ---------------- Add likedByUser & isBookmarked ----------------
+//   const loggedInUserId = req.user?._id;
+//   let bookmarkedSet = new Set();
+
+//   if (loggedInUserId) {
+//     const user = await User.findById(loggedInUserId).select("bookmark");
+//     if (user?.bookmark?.length) {
+//       bookmarkedSet = new Set(user.bookmark.map((id) => id.toString()));
+//     }
+//   }
+
+//   if (loggedInUserId && arts.length) {
+//     const artIds = arts.map((a) => a._id);
+//     const likedDocs = await Like.find({
+//       art: { $in: artIds },
+//       likedBy: loggedInUserId,
+//     }).select("art");
+
+//     const likedSet = new Set(likedDocs.map((l) => l.art.toString()));
+
+//     arts = arts.map((art) => ({
+//       ...(art.toObject?.() || art),
+//       likedByUser: likedSet.has(art._id.toString()),
+//       isBookmarked: bookmarkedSet.has(art._id.toString()),
+//     }));
+//   } else {
+//     arts = arts.map((art) => ({
+//       ...(art.toObject?.() || art),
+//       likedByUser: false,
+//       isBookmarked: false,
+//     }));
+//   }
+
+//   // ---------------- Response ----------------
+//   return res.status(200).json(
+//     new APIResponse(
+//       200,
+//       { arts, total, page: parseInt(page), limit: size },
+//       `Arts fetched successfully (via ${source})`
+//     )
+//   );
+// });
+
 const getAllArts = AsyncHandler(async (req, res) => {
   const {
     page = 1,
@@ -141,6 +284,25 @@ const getAllArts = AsyncHandler(async (req, res) => {
     }));
   }
 
+  // ---------------- Populate owner for all arts ----------------
+  if (arts.length) {
+    // Get all unique owner IDs from arts
+    const ownerIds = [...new Set(arts.map((a) => a.owner))];
+
+    // Fetch users in one go
+    const owners = await User.find({ _id: { $in: ownerIds } })
+      .select("username avatar fullname")
+      .lean();
+
+    const ownerMap = new Map(owners.map((o) => [o._id.toString(), o]));
+
+    // Attach owner info to each art
+    arts = arts.map((art) => ({
+      ...art,
+      owner: ownerMap.get(art.owner?.toString()) || null,
+    }));
+  }
+
   // ---------------- Response ----------------
   return res.status(200).json(
     new APIResponse(
@@ -149,8 +311,8 @@ const getAllArts = AsyncHandler(async (req, res) => {
       `Arts fetched successfully (via ${source})`
     )
   );
-});
 
+});
 
 const getMyArts = AsyncHandler(async (req, res) => {
   try {
