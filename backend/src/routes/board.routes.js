@@ -10,6 +10,7 @@ import {
     updateBoard,
     getBookmarks,
 } from "../controllers/board.controllers.js"
+import {upload} from '../middlewares/multer.middlewares.js'
 import {verifyJWT} from "../middlewares/auth.middlewares.js"
 
 const router = Router();
@@ -23,10 +24,10 @@ router.route("/bookmarks").get(getBookmarks)
 router
     .route("/:boardId")
     .get(getBoardById)
-    .patch(updateBoard)
+    .patch(upload.single("coverImage"), updateBoard)
     .delete(deleteBoard)
 
-router.route("/collaborate/:boardId/:userId").post(addCollaborators)
+router.route("/collaborate/:boardId/:username").post(addCollaborators)
 
 router.route("/add/:artId/:boardId").patch(addArtToBoard);
 router.route("/remove/:artId/:boardId").patch(removeArtFromBoard);

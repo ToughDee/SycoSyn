@@ -5,6 +5,7 @@ import { APIError } from "../utils/APIError.js";
 import { APIResponse } from "../utils/APIResponse.js";
 import { AsyncHandler } from "../utils/AsyncHandler.js";
 import {User} from "../models/user.models.js"
+import { deleteFromCloudinary, getPublicIdFromUrl, uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const createBoard = AsyncHandler(async (req, res) => {
   const { name, description } = req.body;
@@ -13,7 +14,14 @@ const createBoard = AsyncHandler(async (req, res) => {
     throw new APIError(400, "Name and description are required");
   }
 
-  const existingBoard = await Board.findOne({ name: name })
+  const existingBoard = await Board.findOne({
+    name,
+    $or: [
+      { owner: req.user._id },
+      { collaborators: req.user._id }
+    ]
+  });
+
   if(existingBoard) {
     throw new APIError(400, "Board already exists")
   }
@@ -36,14 +44,21 @@ const getUserBoards = AsyncHandler(async (req, res) => {
     throw new APIError(400, "Invalid userId");
   }
 
-  const boards = await Board.find({ owner: userId }).populate({
-    path: "arts",
-    select: "name content owner",
-    populate: {
-      path: "owner",
-      select: "username fullname avatar"
-    }
-  });
+  const boards = await Board.find({
+    $or: [
+      { owner: userId },
+      { collaborators: userId }
+    ]
+  })
+    .populate({
+      path: "arts",
+      select: "name content owner",
+      populate: {
+        path: "owner",
+        select: "username fullname avatar"
+      }
+    })
+    .lean();
 
   return res
     .status(200)
@@ -157,6 +172,7 @@ const deleteBoard = AsyncHandler(async (req, res) => {
 const updateBoard = AsyncHandler(async (req, res) => {
   const { boardId } = req.params;
   const { name, description } = req.body;
+  const coverImage = req.file?.path
 
   if (!isValidObjectId(boardId)) {
     throw new APIError(400, "Invalid boardId");
@@ -175,6 +191,24 @@ const updateBoard = AsyncHandler(async (req, res) => {
   if (name) board.name = name;
   if (description) board.description = description;
 
+  if(coverImage) {
+    const uploadedCoverImage = await uploadOnCloudinary(coverImage)
+    if(!uploadedCoverImage.url) {
+      throw new APIError(400, "Error uploading coverImage on cloudinary")
+    }
+
+    if(board.coverImage) {
+      try {
+        const publicId = getPublicIdFromUrl(board.coverImage)
+        if(publicId) await deleteFromCloudinary(publicId)
+      } catch (error) {
+        console.warn("failed to delete old coverImage from cloudinary")
+      }
+    }
+
+    board.coverImage = uploadedCoverImage.url
+  }
+
   await board.save();
 
   return res
@@ -183,14 +217,14 @@ const updateBoard = AsyncHandler(async (req, res) => {
 });
 
 const addCollaborators = AsyncHandler(async(req, res) => {
-  const {boardId, userId} = req.params
+  const {boardId, username} = req.params
 
-  if(!isValidObjectId(boardId) || !isValidObjectId(userId)) {
-    throw new APIError(400, "Invalid userId or boardId")
+  if(!isValidObjectId(boardId)) {
+    throw new APIError(400, "Invalid boardId")
   }
 
-  if(!boardId || !userId) {
-    throw new APIError(404, "boardId or userId not found")
+  if(!boardId || !username) {
+    throw new APIError(404, "boardId or username not found")
   }
 
   const board = await Board.findById(boardId)
@@ -202,11 +236,18 @@ const addCollaborators = AsyncHandler(async(req, res) => {
     throw new APIError(403, "Unauthorised request!")
   }
 
-  if (board.collaborators.some(id => id.toString() === userId.toString())) {
+  const newCollaborater = await User.findOne({username}).select("username avatar fullname")
+  if(!newCollaborater) {
+    throw new APIError(404, "Collaborator not found")
+  }
+
+  const collaboratorId = newCollaborater._id
+
+  if (board.collaborators.some(id => id.toString() === collaboratorId.toString())) {
     throw new APIError(400, "User is already a collaborator");
   }
 
-  board.collaborators.push(userId)
+  board.collaborators.push(collaboratorId)
   await board.save()
 
   res

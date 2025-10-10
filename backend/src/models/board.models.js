@@ -17,6 +17,9 @@ const boardSchema = new Schema
       trim: true,
       unique: true
     },
+    coverImage : {
+      type: String,
+    },
     description: {
       type: String,
       default: ""
