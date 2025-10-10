@@ -27,46 +27,61 @@ const getAllArts = AsyncHandler(async (req, res) => {
   let source = "MongoDB";
 
   // ---------------- Elasticsearch ----------------
-  if (query || (category && category !== "All") || userId) {
-    try {
-      const esQuery = {
-        index: "arts",
-        from,
-        size,
-        sort: [{ [sortBy]: { order: sortType } }],
-        query: {
-          bool: {
-            must: [
-              query
-                ? {
-                    multi_match: {
-                      query,
-                      fields: ["name^3", "caption", "tags"], // fuzzy search
-                      fuzziness: "AUTO",
-                    },
-                  }
-                : { match_all: {} },
-            ],
-            filter: [
-              ...(category && category !== "All"
-                ? [{ term: { "tags.keyword": category.toLowerCase() } }] // exact match
-                : []),
-              ...(userId ? [{ term: { owner: userId } }] : []),
-            ],
+  try {
+    const must = query
+      ? [
+          {
+            multi_match: {
+              query,
+              fields: ["name^3", "caption", "tags"],
+              fuzziness: "AUTO",
+            },
           },
-        },
-      };
+        ]
+      : [{ match_all: {} }];
 
-      const result = await esClient.search(esQuery);
+    const filter = [];
+
+    // 🔹 Exact category filter using keyword field
+    if (category && category !== "All") {
+      filter.push({
+        term: {
+          "tags.keyword": category.toLowerCase(),
+        },
+      });
+    }
+
+    // 🔹 Filter by userId if provided
+    if (userId) {
+      filter.push({ term: { owner: userId } });
+    }
+
+    const esQuery = {
+      index: "arts",
+      from,
+      size,
+      sort: [{ [sortBy]: { order: sortType } }],
+      query: {
+        bool: {
+          must,
+          filter,
+        },
+      },
+    };
+
+    const result = await esClient.search(esQuery);
+
+    // ✅ Only use results if total > 0
+    if (result.hits.total.value > 0) {
       arts = result.hits.hits.map((hit) => ({
         _id: hit._id,
         ...hit._source,
       }));
       total = result.hits.total.value;
       source = "Elasticsearch";
-    } catch (err) {
-      console.error("❌ Elasticsearch search failed:", err);
     }
+  } catch (err) {
+    console.error("❌ Elasticsearch search failed:", err);
   }
 
   // ---------------- MongoDB Fallback ----------------
@@ -75,6 +90,11 @@ const getAllArts = AsyncHandler(async (req, res) => {
     if (userId) {
       if (!isValidObjectId(userId)) throw new APIError(400, "Invalid userId");
       filter.owner = userId;
+    }
+
+    // 🔹 Category filter for Mongo fallback
+    if (category && category !== "All") {
+      filter.tags = { $in: [category.toLowerCase()] };
     }
 
     const sortOption = { [sortBy]: sortType === "desc" ? -1 : 1 };
@@ -110,19 +130,18 @@ const getAllArts = AsyncHandler(async (req, res) => {
 
     arts = arts.map((art) => ({
       ...(art.toObject?.() || art),
-      // art,
       likedByUser: likedSet.has(art._id.toString()),
       isBookmarked: bookmarkedSet.has(art._id.toString()),
     }));
   } else {
     arts = arts.map((art) => ({
       ...(art.toObject?.() || art),
-      // art,
       likedByUser: false,
       isBookmarked: false,
     }));
   }
 
+  // ---------------- Response ----------------
   return res.status(200).json(
     new APIResponse(
       200,
@@ -131,6 +150,7 @@ const getAllArts = AsyncHandler(async (req, res) => {
     )
   );
 });
+
 
 const getMyArts = AsyncHandler(async (req, res) => {
   try {

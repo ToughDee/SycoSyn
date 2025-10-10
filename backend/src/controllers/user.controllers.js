@@ -301,7 +301,7 @@ const getUserChannelProfile = AsyncHandler(async (req, res) => {
 
   // ✅ Fetch the user (excluding sensitive data)
   const user = await User.findById(userId)
-    .select("username fullname avatar")
+    .select("-password -__v -bookmark -history")
     .lean();
 
   if (!user) {

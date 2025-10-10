@@ -12,7 +12,21 @@ dotenv.config();
 
 // ===== CONFIG =====
 const USERS_COUNT = 10;
-const IMAGES_FOLDER = path.join(process.cwd(), "seed_images");
+const IMAGE_FOLDERS = [
+  "painting",
+  "illustration",
+  "digital",
+  "photography",
+  "3d art",
+  "writing",
+  "sketch",
+  "abstract",
+  "nature",
+  "architecture",
+  "people",
+  "animals",
+];
+const BASE_IMAGES_PATH = path.join(process.cwd(), "seed_images");
 const IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif"];
 
 const seedDB = async () => {
@@ -20,7 +34,7 @@ const seedDB = async () => {
     await connectDB();
     console.log("✅ Connected to MongoDB");
 
-    // 🧹 Clean old data (optional)
+    // 🧹 Clear old data
     await Promise.all([User.deleteMany({}), Art.deleteMany({})]);
     console.log("🧹 Cleared existing users and arts");
 
@@ -40,44 +54,52 @@ const seedDB = async () => {
     }
     console.log(`✅ Created ${users.length} users`);
 
-    // 🖼️ Get all image files
-    const imageFiles = fs
-      .readdirSync(IMAGES_FOLDER)
-      .filter((f) => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()));
-
-    if (imageFiles.length === 0) {
-      console.log("⚠️ No images found in seed_images folder");
-      process.exit(0);
-    }
-
-    console.log(`📸 Found ${imageFiles.length} images`);
-
-    // 🎨 Create art entries
-    for (const file of imageFiles) {
-      const imagePath = path.join(IMAGES_FOLDER, file);
-      const fileName = path.parse(file).name; // file name without extension
-      const owner = faker.helpers.arrayElement(users);
-
-      // Upload to Cloudinary
-      const uploadResult = await uploadOnCloudinary(imagePath);
-      if (!uploadResult?.url) {
-        console.warn(`⚠️ Failed to upload ${file}`);
+    // 🎨 Iterate through each folder
+    for (const folderName of IMAGE_FOLDERS) {
+      const folderPath = path.join(BASE_IMAGES_PATH, folderName);
+      if (!fs.existsSync(folderPath)) {
+        console.warn(`⚠️ Folder not found: ${folderName}`);
         continue;
       }
 
-      // Create art document
-      await Art.create({
-        owner: owner._id,
-        name: fileName,
-        content: uploadResult.url,
-        caption: "",
-        tags: [],
-        likes: faker.number.int({ min: 0, max: 500 }),
-        views: faker.number.int({ min: 50, max: 2000 }),
-        isPublished: true,
-      });
+      const imageFiles = fs
+        .readdirSync(folderPath)
+        .filter((f) => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()));
 
-      console.log(`✅ Seeded art: ${fileName}`);
+      if (!imageFiles.length) {
+        console.log(`⚠️ No images found in folder: ${folderName}`);
+        continue;
+      }
+
+      console.log(`📸 Found ${imageFiles.length} images in "${folderName}"`);
+
+      // 🖼️ Upload images and create Art entries
+      for (const file of imageFiles) {
+        const imagePath = path.join(folderPath, file);
+        const fileName = path.parse(file).name;
+        const owner = faker.helpers.arrayElement(users);
+
+        // Upload to Cloudinary
+        const uploadResult = await uploadOnCloudinary(imagePath);
+        if (!uploadResult?.url) {
+          console.warn(`⚠️ Failed to upload ${file}`);
+          continue;
+        }
+
+        // Create Art with folder tag
+        await Art.create({
+          owner: owner._id,
+          name: fileName,
+          content: uploadResult.url,
+          caption: "",
+          tags: [folderName.toLowerCase()], // folder tag
+          likes: faker.number.int({ min: 0, max: 500 }),
+          views: faker.number.int({ min: 50, max: 2000 }),
+          isPublished: true,
+        });
+
+        console.log(`✅ Seeded art: ${fileName} (folder: ${folderName})`);
+      }
     }
 
     console.log("🌱 Seeding completed successfully!");
