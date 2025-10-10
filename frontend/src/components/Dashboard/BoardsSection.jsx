@@ -14,12 +14,10 @@ const BoardsSection = () => {
 
       {boards.length === 0 ? (
         <div className="no-boards">
-          <img src="/assets/images/empty-folder.png" alt="No Boards" />
+         
           <h1>No Boards</h1>
           <p>You haven’t created any boards yet.</p>
-          <button onClick={() => navigate("/create-board")}>
-            + Create Your First Board
-          </button>
+         
         </div>
       ) : (
         <div className="boards-scroll">
@@ -27,7 +25,7 @@ const BoardsSection = () => {
             <div key={board._id} className="board-card">
               <div className="board-image-wrapper">
                 <img
-                  src={board.arts?.[0]?.content || "/assets/images/default-board.jpg"}
+                  src={board.coverImage || board.arts?.[0]?.content || "/assets/images/default-board.jpg"}
                   alt={board.name}
                   className="board-image"
                 />

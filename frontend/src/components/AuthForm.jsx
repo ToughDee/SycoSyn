@@ -46,7 +46,7 @@ export default function AuthForm1() {
     }
   } catch (err) {
     setLoading(false);
-    setMessage("❌ Login failed: " + err.message);
+    setMessage("❌ Login failed  ");
   }
 };
 
@@ -91,7 +91,7 @@ export default function AuthForm1() {
     else setMessage("❌ Registration failed: " + data.message);
   } catch (err) {
     setLoading(false);
-    setMessage("❌ Registration failed: " + err.message);
+    setMessage("❌ Registration failed: ");
   }
 };
 
@@ -129,9 +129,7 @@ export default function AuthForm1() {
 
           <div className="social-icons-1">
             <a href="#"><i className="bx bxl-google"></i></a>
-            <a href="#"><i className="bx bxl-facebook"></i></a>
-            <a href="#"><i className="bx bxl-github"></i></a>
-            <a href="#"><i className="bx bxl-linkedin"></i></a>
+            
           </div>
         </form>
       </div>
@@ -160,13 +158,11 @@ export default function AuthForm1() {
             {loading ? "Registering..." : "Register"}
           </button>
 
-          <p>or register with social platforms</p>
+          <p>or register with Google</p>
 
           <div className="social-icons-1">
             <a href="#"><i className="bx bxl-google"></i></a>
-            <a href="#"><i className="bx bxl-facebook"></i></a>
-            <a href="#"><i className="bx bxl-github"></i></a>
-            <a href="#"><i className="bx bxl-linkedin"></i></a>
+            
           </div>
         </form>
       </div>
@@ -189,7 +185,11 @@ export default function AuthForm1() {
         </div>
       </div>
 
-      {message && <p className="form-message-1">{message}</p>}
+      {message && (
+  <p className={`form-message-1 ${message.startsWith("✅") ? "success" : "error"}`}>
+    {message}
+  </p>
+)}
     </div>
   );
 }

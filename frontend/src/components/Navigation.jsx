@@ -27,7 +27,7 @@ const Navigation = () => {
   const navLinks = [
     { label: "Home", id: "hero" },
     { label: "Features", id: "features" },
-    { label: "Gallery", id: "gallery" },
+   
     { label: "How It Works", id: "how-it-works" },
     { label: "FAQ", id: "faq" },
   ];

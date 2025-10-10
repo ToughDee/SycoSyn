@@ -1,4 +1,3 @@
-// src/components/Dashboard/DasHBoard.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./DasHBoard.css";
@@ -11,6 +10,7 @@ import BoardsSection from "./BoardsSection";
 const Dashboard = () => {
   const navigate = useNavigate();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false); // ✅ new state
 
   const handleUploadClick = () => {
     navigate("/upload-artworks");
@@ -29,7 +29,13 @@ const Dashboard = () => {
   };
 
   const confirmLogout = async () => {
+    setShowLogoutModal(false);
+    setIsLoggingOut(true); // show loader
+
     try {
+      // short delay for effect
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
       const res = await fetch("http://localhost:8000/api/v1/user/logout", {
         method: "POST",
         credentials: "include",
@@ -38,7 +44,6 @@ const Dashboard = () => {
       if (res.ok) {
         localStorage.removeItem("authToken");
         sessionStorage.removeItem("authToken");
-        setShowLogoutModal(false);
         navigate("/"); // redirect to home/login
       } else {
         const data = await res.json();
@@ -47,6 +52,8 @@ const Dashboard = () => {
     } catch (err) {
       console.error("Error logging out:", err);
       alert("An error occurred during logout");
+    } finally {
+      setIsLoggingOut(false); // hide loader
     }
   };
 
@@ -66,7 +73,6 @@ const Dashboard = () => {
             Upload New Artwork
           </button>
 
-          {/* ✅ Create New Board button next to Upload Artwork */}
           <button className="create-board-btn" onClick={handleCreateBoardClick}>
             + Create New Board
           </button>
@@ -90,6 +96,7 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* ✅ Logout confirmation modal */}
       {showLogoutModal && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -102,6 +109,16 @@ const Dashboard = () => {
                 Cancel
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Logging out loader modal */}
+      {isLoggingOut && (
+        <div className="modal-overlay1">
+          <div className="modal-content1 logging-out-modal">
+            <div className="spinner1"></div>
+            <h3>Logging out... please wait</h3>
           </div>
         </div>
       )}

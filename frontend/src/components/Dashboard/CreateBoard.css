@@ -1,5 +1,5 @@
 .create-board-page {
-  width: 100vw;
+  width:  80vw;
   margin: 60px auto;
   background: #ffffff;
   border-radius: 16px;
@@ -9,6 +9,7 @@
   flex-direction: column;
   gap: 15px;
   font-family: "Inter", sans-serif;
+  height: 500px;
 }
 
 .create-board-page h2 {
@@ -84,4 +85,53 @@
   .create-board-page h2 {
     font-size: 1.5rem;
   }
+}
+
+.board-success-popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #0e7735; /* green */
+  color: #fff;
+  padding: 14px 22px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  font-weight: 600;
+  z-index: 9999;
+  animation: popupFade 1s ease-in-out;
+}
+
+@keyframes popupFade {
+  0% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+
+/* Top-left back button, matching Create Board button theme */
+
+/* Top-left back button */
+.btn-back-board1 {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease, transform 0.1s ease;
+  z-index: 10000;
+}
+
+.btn-back-board1:hover {
+  background-color: #4f46e5;
+  transform: translateY(-1px);
+}
+
+.btn-back-board1:disabled {
+  background-color: #a5b4fc;
+  cursor: not-allowed;
 }

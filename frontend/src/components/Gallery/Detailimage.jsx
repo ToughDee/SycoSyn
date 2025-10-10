@@ -5,14 +5,13 @@ import { BoardsContext } from "../../Store/BoardContext";
 import { FaHeart } from "react-icons/fa";
 import { BiSolidBookmarkStar } from "react-icons/bi";
 
-
 import "./Gallery.css";
 
 const ImageDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { bookmarks, dispatchBookmarks } = useContext(BookmarksContext);
-  const { boards } = useContext(BoardsContext);
+  const { boards, refreshBoards } = useContext(BoardsContext);
 
   const [imageData, setImageData] = useState(null);
   const [comments, setComments] = useState([]);
@@ -24,7 +23,29 @@ const ImageDetailPage = () => {
   const [newComment, setNewComment] = useState("");
   const [showBoardDropdown, setShowBoardDropdown] = useState(false);
 
-  // Fetch image + comments once
+  // ✅ Popup states
+  const [popupMessage, setPopupMessage] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
+
+  // ✅ Current user
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const userRes = await fetch("http://localhost:8000/api/v1/user/current-user", {
+          credentials: "include",
+        });
+        const userData = await userRes.json();
+        if (!userData.success) throw new Error("Failed to get user");
+        setUser(userData.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
+
+  // Fetch image + comments
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -112,24 +133,37 @@ const ImageDetailPage = () => {
     }
   };
 
-  // Add to board
-  const handleAddToBoard = async (boardId) => {
-    try {
-      const res = await fetch(`http://localhost:8000/api/v1/board/add/${imageData._id}/${boardId}`, {
+ // Import BoardsContext
+
+
+const handleAddToBoard = async (boardId) => {
+  try {
+    const res = await fetch(
+      `http://localhost:8000/api/v1/board/add/${imageData._id}/${boardId}`,
+      {
         method: "PATCH",
         credentials: "include",
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.message || "Failed to add artwork to board");
+      }
+    );
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || "Already added to board");
 
-      alert(`Artwork added to board!`);
-      setShowBoardDropdown(false);
-    } catch (err) {
-      console.error(err);
-      alert("Error adding artwork to board");
-    }
-  };
+    // ✅ Refresh the boards in context so UI updates
+    await refreshBoards();
 
+    // ✅ Show popup
+    setPopupMessage("Artwork added to board!");
+    setShowPopup(true);
+    setTimeout(() => setShowPopup(false), 2000);
+
+    setShowBoardDropdown(false);
+  } catch (err) {
+    console.error(err);
+    setPopupMessage("Already Added");
+    setShowPopup(true);
+    setTimeout(() => setShowPopup(false), 2000);
+  }
+};
   // Add comment
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
@@ -151,57 +185,80 @@ const ImageDetailPage = () => {
     }
   };
 
+  // Delete comment
+  const handleDeleteComment = async (commentId) => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/v1/comments/c/${commentId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || "Failed to delete comment");
+      setComments(prev => prev.filter(c => c._id !== commentId));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
   if (!imageData) return <p>No image found</p>;
 
   return (
     <div className="image-detail-page">
+      {showPopup && <div className="popup-notification">{popupMessage}</div>}
+
       <div className="image-detail-header">
         <button onClick={() => navigate(-1)}>← Back</button>
       </div>
 
       <div className="image-section">
         <img src={imageData.content} alt={imageData.name} className="detail-image" />
-        <div className="image-actions">
-          <button className={isLiked ? "liked" : ""} onClick={handleLike}>
-            <FaHeart /> {likesCount}
-          </button>
-          <button className={isBookmarked ? "bookmarked" : ""} onClick={handleBookmark}>
-            <BiSolidBookmarkStar />
-          </button>
 
-          {/* Add to Board Dropdown */}
-          <div className="add-board-container">
-            <button
-              onClick={() => setShowBoardDropdown((prev) => !prev)}
-              className="add-board-btn"
-            >
-              Add to Board
+        <div className="image-info-row">
+          <h2 className="image-title">{imageData.name}</h2>
+          <div className="image-actions">
+            <button className={isLiked ? "liked" : ""} onClick={handleLike}>
+              <FaHeart /> {likesCount}
             </button>
-            {showBoardDropdown && (
-              <div className="add-board-dropdown">
-                {boards.length === 0 ? (
-                  <p className="dropdown-item">No boards found</p>
-                ) : (
-                  boards.map((b) => (
-                    <div
-                      key={b._id}
-                      onClick={() => handleAddToBoard(b._id)}
-                      className="dropdown-item"
-                    >
-                      {b.name}
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
+            <button className={isBookmarked ? "bookmarked" : ""} onClick={handleBookmark}>
+              <BiSolidBookmarkStar />
+            </button>
+
+            <div className="add-board-container">
+              <button
+                onClick={() => setShowBoardDropdown(prev => !prev)}
+                className="add-board-btn"
+              >
+                Add to Board
+              </button>
+              {showBoardDropdown && (
+                <div className="add-board-dropdown">
+                  {boards.length === 0 ? (
+                    <p className="dropdown-item">No boards found</p>
+                  ) : (
+                    boards.map((b) => (
+                      <div
+                        key={b._id}
+                        onClick={() => handleAddToBoard(b._id)}
+                        className="dropdown-item"
+                      >
+                        {b.name}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
+
+        {imageData.caption && <p className="image-description">{imageData.caption}</p>}
       </div>
 
       <div className="comments-section">
         <h3>Comments</h3>
+
         <div className="add-comment">
           <input
             type="text"
@@ -214,10 +271,38 @@ const ImageDetailPage = () => {
 
         {comments.length === 0 && <p>No comments yet.</p>}
         {comments.map((c) => (
-          <div key={c._id} className="comment">
-            <strong>{c.owner.username}:</strong> <span>{c.content}</span>
-          </div>
-        ))}
+  <div key={c._id} className="comment">
+    <div
+      className="comment-avatar"
+      onClick={() => {
+        if (user && c.owner._id !== user._id) {
+          navigate(`/user/${c.owner._id}`);
+        }
+      }}
+      style={{ cursor: user && c.owner._id !== user._id ? "pointer" : "default" }}
+    >
+      {c.owner.avatar ? (
+        <img src={c.owner.avatar} alt={c.owner.username} />
+      ) : (
+        <div className="placeholder-avatar">{c.owner.username[0]}</div>
+      )}
+    </div>
+
+    <div className="comment-content">
+      <strong>{c.owner.username}</strong>
+      <span>{c.content}</span>
+    </div>
+
+    {user && c.owner._id === user._id && (
+      <button
+        className="comment-delete-btn"
+        onClick={() => handleDeleteComment(c._id)}
+      >
+        ✕
+      </button>
+    )}
+  </div>
+))}
       </div>
     </div>
   );

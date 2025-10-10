@@ -1,17 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { BoardsContext } from "../../Store/BoardContext";
 import "./BoardPage.css";
 
 const BoardPage1 = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { refreshBoards } = useContext(BoardsContext);
 
   const [board, setBoard] = useState(null);
   const [editedBoard, setEditedBoard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
-  // 🔹 Fetch board by ID
+  // ✅ Popup state
+  const [popupMessage, setPopupMessage] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
+  const [pendingDeleteArtId, setPendingDeleteArtId] = useState(null);
+
+  // 🔹 Fetch board
   useEffect(() => {
     const fetchBoard = async () => {
       try {
@@ -32,14 +40,12 @@ const BoardPage1 = () => {
     fetchBoard();
   }, [id]);
 
-  // 🔹 Edit handlers
   const startEdit = () => setEditMode(true);
   const cancelEdit = () => {
     setEditedBoard({ ...board });
     setEditMode(false);
   };
 
-  // 🔹 Handle image change
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -51,8 +57,9 @@ const BoardPage1 = () => {
     }
   };
 
-  // 🔹 Save board (with FormData)
+  // 🔹 Save board with popup
   const saveBoard = async () => {
+    setSaving(true);
     try {
       const formData = new FormData();
       formData.append("name", editedBoard.name);
@@ -69,59 +76,72 @@ const BoardPage1 = () => {
 
       const data = await res.json();
       if (data.success) {
-        setBoard(data.data);
+        setBoard((prev) => ({
+          ...prev,
+          ...data.data,
+          arts: prev.arts,
+        }));
         setEditMode(false);
+        await refreshBoards();
+
+        setPopupMessage("Board updated successfully!");
+        setShowPopup(true);
+        setTimeout(() => setShowPopup(false), 2000);
       } else {
-        alert("Failed to update board");
+        setPopupMessage("Failed to update board");
+        setShowPopup(true);
+        setTimeout(() => setShowPopup(false), 2000);
       }
     } catch (err) {
       console.error("Error updating board:", err);
+      setPopupMessage("Error updating board");
+      setShowPopup(true);
+      setTimeout(() => setShowPopup(false), 2000);
+    } finally {
+      setSaving(false);
     }
   };
 
-  // 🔹 Delete board
-  const deleteBoard = async () => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this board?");
-    if (!confirmDelete) return;
-
-    try {
-      const res = await fetch(`http://localhost:8000/api/v1/board/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert("Board deleted successfully!");
-        navigate("/user-profile");
-      } else {
-        alert("Failed to delete board");
-      }
-    } catch (err) {
-      console.error("Error deleting board:", err);
-    }
+  // 🔹 Delete artwork with popup confirmation
+  const deleteArtwork = (artId) => {
+    setPopupMessage("Delete this artwork from board?");
+    setShowPopup(true);
+    setPendingDeleteArtId(artId);
   };
 
-  // 🔹 Delete individual artwork
-  const deleteArtwork = async (artId) => {
-    const confirmDel = window.confirm("Delete this artwork from board?");
-    if (!confirmDel) return;
+  const handleConfirmDeleteArtwork = async () => {
+    const artId = pendingDeleteArtId;
+    if (!artId) return;
+
+    setShowPopup(false);
+    setPendingDeleteArtId(null);
 
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/board/remove/${artId}/${id}`, {
-        method: "PATCH",
-        credentials: "include",
-      });
+      const res = await fetch(
+        `http://localhost:8000/api/v1/board/remove/${artId}/${id}`,
+        { method: "PATCH", credentials: "include" }
+      );
       const data = await res.json();
       if (data.success) {
         setBoard((prev) => ({
           ...prev,
           arts: prev.arts.filter((art) => art._id !== artId),
         }));
+        await refreshBoards();
+
+        setPopupMessage("Artwork deleted successfully!");
+        setShowPopup(true);
+        setTimeout(() => setShowPopup(false), 2000);
       } else {
-        alert("Failed to delete artwork");
+        setPopupMessage("Failed to delete artwork");
+        setShowPopup(true);
+        setTimeout(() => setShowPopup(false), 2000);
       }
     } catch (err) {
       console.error("Error deleting artwork:", err);
+      setPopupMessage("Error deleting artwork");
+      setShowPopup(true);
+      setTimeout(() => setShowPopup(false), 2000);
     }
   };
 
@@ -130,20 +150,36 @@ const BoardPage1 = () => {
 
   return (
     <div className="board-page1">
+      {/* Popup */}
+      {showPopup && (
+        <div className="board-popup">
+          <p>{popupMessage}</p>
+          {pendingDeleteArtId && (
+            <div className="popup-buttons">
+              <button onClick={handleConfirmDeleteArtwork}>Yes</button>
+              <button
+                onClick={() => {
+                  setShowPopup(false);
+                  setPendingDeleteArtId(null);
+                }}
+              >
+                No
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Header */}
       <header className="board-header1">
-        <button className="back-btn1" onClick={() => navigate(-1)}>← Back</button>
+        <button className="back-btn1" onClick={() => navigate(-1)}>
+          ← Back
+        </button>
         <h1 className="board-page-title1">{board.name}</h1>
-        <button className="collab-btn1" onClick={() => alert("Add collaborator soon!")}>
-          + Add Collaborators
-        </button>
-        <button className="delete-board-btn1 " onClick={deleteBoard} >
-          Delete Board
-        </button>
       </header>
 
       <div className="board-content1">
-        {/* Left Side - Board Info */}
+        {/* Left Panel */}
         <div className="board-info1">
           <img
             src={
@@ -155,19 +191,22 @@ const BoardPage1 = () => {
             alt={board.name}
             className="board-cover1"
           />
-
           <div className="board-details1">
             {editMode ? (
               <>
                 <input
                   type="text"
                   value={editedBoard.name}
-                  onChange={(e) => setEditedBoard({ ...editedBoard, name: e.target.value })}
+                  onChange={(e) =>
+                    setEditedBoard({ ...editedBoard, name: e.target.value })
+                  }
                   className="edit-input1"
                 />
                 <textarea
                   value={editedBoard.description}
-                  onChange={(e) => setEditedBoard({ ...editedBoard, description: e.target.value })}
+                  onChange={(e) =>
+                    setEditedBoard({ ...editedBoard, description: e.target.value })
+                  }
                   className="edit-textarea1"
                 />
                 <input
@@ -177,41 +216,54 @@ const BoardPage1 = () => {
                   className="edit-file1"
                 />
                 <div className="edit-buttons1">
-                  <button className="save-btn1" onClick={saveBoard}>Save</button>
-                  <button className="cancel-btn1" onClick={cancelEdit}>Cancel</button>
+                  <button className="save-btn1" onClick={saveBoard} disabled={saving}>
+                    {saving ? "Saving..." : "Save"}
+                  </button>
+                  <button className="cancel-btn1" onClick={cancelEdit} disabled={saving}>
+                    Cancel
+                  </button>
                 </div>
               </>
             ) : (
               <>
                 <h2>{board.name}</h2>
                 <p>{board.description}</p>
-                <button className="edit-btn1" onClick={startEdit}>Edit Board</button>
+                <button className="edit-btn1" onClick={startEdit}>
+                  Edit Board
+                </button>
               </>
             )}
           </div>
         </div>
 
-        {/* Right Side - Artworks */}
+        {/* Right Panel */}
         <div className="board-artworks1">
           <h3 className="artworks-title1">Artworks in this board</h3>
           <div className="artworks-scroll1">
-            {board.arts?.map((art) => (
-              <div key={art._id} className="art-card1" style={{ position: "relative" }}>
-                <img src={art.content} alt={art.name} className="art-image1" />
-                {editMode && (
-                  <button
-                    className="delete-art-btn1"
-                    onClick={() => deleteArtwork(art._id)}
-                  >
-                    ✕
-                  </button>
-                )}
-                <div className="art-info1">
-                  <h4>{art.name}</h4>
-                  <p>by {art.owner?.username}</p>
+            {board.arts?.length > 0 ? (
+              board.arts.map((art) => (
+                <div key={art._id} className="art-card1" style={{ position: "relative" }}>
+                  <img src={art.content} alt={art.name} className="art-image1" />
+                  {editMode && (
+                    <button
+                      className="delete-art-btn1"
+                      onClick={() => deleteArtwork(art._id)}
+                      disabled={saving}
+                    >
+                      ✕
+                    </button>
+                  )}
+                  <div className="art-info1">
+                    <h4>{art.name}</h4>
+                    <p>by {art.owner?.username}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p style={{ textAlign: "center", marginTop: "20px", color: "#555" }}>
+                No artworks added
+              </p>
+            )}
           </div>
         </div>
       </div>

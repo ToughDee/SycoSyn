@@ -7,67 +7,89 @@ export const BoardsProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
+  // ✅ Fetch boards (used in multiple places)
+  const fetchBoardsForUser = async (userId) => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/v1/board/user/${userId}`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.success) setBoards(data.data || []);
+    } catch (err) {
+      console.error("Error fetching boards:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Initial load
   useEffect(() => {
-    const fetchBoardsForUser = async () => {
+    const loadUserAndBoards = async () => {
       try {
-        // 1️⃣ Fetch current logged-in user first
         const userRes = await fetch("http://localhost:8000/api/v1/user/current-user", {
           credentials: "include",
         });
         const userData = await userRes.json();
         if (!userData.success) throw new Error("Failed to get user");
         setUser(userData.data);
-
-        // 2️⃣ Then fetch boards for that user ID
-        const res = await fetch(
-          `http://localhost:8000/api/v1/board/user/${userData.data._id}`,
-          { credentials: "include" }
-        );
-        const data = await res.json();
-        if (data.success) setBoards(data.data || []);
+        await fetchBoardsForUser(userData.data._id);
       } catch (err) {
-        console.error("Error fetching user boards:", err);
-      } finally {
+        console.error("Error fetching user or boards:", err);
         setLoading(false);
       }
     };
 
-    fetchBoardsForUser();
+    loadUserAndBoards();
   }, []);
 
+  // ✅ Create board (and refresh after creating)
+  const createBoard = async (name, description) => {
+    if (!user) return null;
 
-  // inside BoardsProvider
-const createBoard = async (name, description) => {
-  if (!user) return null;
+    try {
+      const res = await fetch("http://localhost:8000/api/v1/board", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          description,
+          owner: user._id,
+        }),
+      });
 
-  try {
-    const res = await fetch("http://localhost:8000/api/v1/board", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        description,
-        owner: user._id, // tie board to current user
-      }),
-    });
-
-    const data = await res.json();
-    if (data.success) {
-      setBoards((prev) => [...prev, data.data]); // add newly created board to context
-      return data.data;
-    } else {
-      console.error("Failed to create board:", data.message);
+      const data = await res.json();
+      if (data.success) {
+        // Option 1: Just append it
+        setBoards((prev) => [...prev, data.data]);
+        // Option 2 (better): Re-fetch to ensure fresh data
+        await fetchBoardsForUser(user._id);
+        return data.data;
+      }
+      return null;
+    } catch (err) {
+      console.error("Error creating board:", err);
       return null;
     }
-  } catch (err) {
-    console.error("Error creating board:", err);
-    return null;
-  }
-};
+  };
+
+  // ✅ Refresh boards manually (export this)
+  const refreshBoards = async () => {
+    if (user) {
+      await fetchBoardsForUser(user._id);
+    }
+  };
 
   return (
-    <BoardsContext.Provider value={{ boards, user, loading,createBoard }}>
+    <BoardsContext.Provider
+      value={{
+        boards,
+        user,
+        loading,
+        createBoard,
+        refreshBoards, // ✅ exported
+      }}
+    >
       {children}
     </BoardsContext.Provider>
   );

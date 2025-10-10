@@ -7,7 +7,7 @@ const ProfileSection = () => {
   const fileInputRef = useRef(null);
 
   const defaultUser = {
-    name: "Your name here", // frontend internal state
+    name: "Your name here",
     email: "email here",
     location: "city,state",
     avatar: "./assets/images/user-prof.webp",
@@ -18,7 +18,10 @@ const ProfileSection = () => {
   const [user, setUser] = useState(defaultUser);
   const [isEditing, setIsEditing] = useState(false);
   const [previewAvatar, setPreviewAvatar] = useState(defaultUser.avatar);
-  const [selectedFile, setSelectedFile] = useState(null); // For avatar upload
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [saving, setSaving] = useState(false); // 🔹 for loader
+  const [popupMsg, setPopupMsg] = useState(""); // 🔹 for popup message
+  const [showPopup, setShowPopup] = useState(false); // 🔹 toggle popup
 
   // Fetch current user
   useEffect(() => {
@@ -33,7 +36,7 @@ const ProfileSection = () => {
 
         setUser((prev) => ({
           ...prev,
-          name: currentUser.fullname || prev.name, // backend fullname → frontend name
+          name: currentUser.fullname || prev.name,
           email: currentUser.email || prev.email,
           location: currentUser.location || prev.location,
           avatar: currentUser.avatar || prev.avatar,
@@ -58,7 +61,7 @@ const ProfileSection = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setSelectedFile(file); // Save file for PATCH request
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => setPreviewAvatar(reader.result);
       reader.readAsDataURL(file);
@@ -68,8 +71,9 @@ const ProfileSection = () => {
   const handleCameraClick = () => fileInputRef.current.click();
 
   const handleSave = async () => {
+    setSaving(true); // 🔹 start loader
     try {
-      // 🔹 Update avatar first if changed
+      // Update avatar first if changed
       if (selectedFile) {
         const formData = new FormData();
         formData.append("avatar", selectedFile);
@@ -85,9 +89,9 @@ const ProfileSection = () => {
         setUser((prev) => ({ ...prev, avatar: avatarData.data.avatar }));
       }
 
-      // 🔹 Update other user details
+      // Update other user details
       const userDetails = {
-        fullname: user.name, // map frontend name → backend fullname
+        fullname: user.name,
         email: user.email,
         location: user.location,
         bio: user.bio,
@@ -105,7 +109,7 @@ const ProfileSection = () => {
       const updatedUser = await detailsRes.json();
       setUser((prev) => ({
         ...prev,
-        name: updatedUser.data.fullname, // backend fullname → frontend name
+        name: updatedUser.data.fullname,
         email: updatedUser.data.email,
         location: updatedUser.data.location,
         bio: updatedUser.data.bio,
@@ -116,10 +120,15 @@ const ProfileSection = () => {
       setSelectedFile(null);
       setPreviewAvatar(updatedUser.data.avatar || previewAvatar);
 
-      alert("Profile updated successfully!");
+      // 🔹 Show success popup
+      setPopupMsg("Profile updated successfully!");
+      setShowPopup(true);
     } catch (err) {
       console.error(err);
-      alert("Failed to save changes. Please try again.");
+      setPopupMsg("Failed to save changes. Please try again.");
+      setShowPopup(true);
+    } finally {
+      setSaving(false); // 🔹 stop loader
     }
   };
 
@@ -207,11 +216,22 @@ const ProfileSection = () => {
           <button
             className={`edit-btn ${isEditing ? "save-btn" : ""}`}
             onClick={isEditing ? handleSave : handleEditClick}
+            disabled={saving} // disable while saving
           >
-            {isEditing ? "Save Changes" : "Edit Profile"}
+            {isEditing ? (saving ? "Saving..." : "Save Changes") : "Edit Profile"}
           </button>
         </div>
       </div>
+
+      {/* 🔹 Popup */}
+      {showPopup && (
+        <div className="popup-overlay1">
+          <div className="popup-box1">
+            <p>{popupMsg}</p>
+            <button onClick={() => setShowPopup(false)}>OK</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

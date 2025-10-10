@@ -8,7 +8,7 @@ import "./Gallery.css";
 function Gallery() {
   const [images, setImages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("art");
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const fetchArts = async () => {
@@ -19,12 +19,15 @@ function Gallery() {
         limit: 60,
         query: searchTerm,
         category: selectedCategory === "All" ? "" : selectedCategory
+
       });
 
       const response = await fetch(`http://localhost:8000/api/v1/art?${params.toString()}`, {credentials: "include"});
       const data = await response.json();
 
-      setImages(data?.data?.arts || []);
+     const shuffled = data.data.arts.sort(() => Math.random() - 0.5);
+
+      setImages(shuffled || []);
     } catch (error) {
       console.error("Error fetching arts:", error);
       setImages([]);

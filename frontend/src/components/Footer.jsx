@@ -41,8 +41,7 @@ const FooterCTA = () => {
             <p>Or sign up with:</p>
             <div className="social-buttons">
               <button>Google</button>
-              <button>Facebook</button>
-              <button>Twitter</button>
+             
             </div>
           </div>
         </div>

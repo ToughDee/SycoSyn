@@ -10,11 +10,12 @@ function UploadArtForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false); // ✅ Success popup
 
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
-  // ✅ Handle file selection
+  // Handle file selection
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -25,13 +26,21 @@ function UploadArtForm() {
     }
   };
 
-  // ✅ Remove selected file
+  // Remove selected file
   const handleRemoveFile = () => {
     setSelectedFile(null);
     setPreviewUrl("");
   };
 
-  // ✅ Submit form and post to backend
+  // Clear form
+  const handleClear = () => {
+    setSelectedFile(null);
+    setPreviewUrl("");
+    setTitle("");
+    setDescription("");
+  };
+
+  // Submit form and post to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -71,15 +80,16 @@ function UploadArtForm() {
       dispatchUploads({ type: "ADD_UPLOAD", payload: newUpload });
       await fetchUploads();
 
-      alert("Upload Successful!");
+      // ✅ Show success popup
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 2500);
 
       // Reset form
-      setSelectedFile(null);
-      setPreviewUrl("");
-      setTitle("");
-      setDescription("");
+      handleClear();
 
-      navigate("/user-profile");
+      // Optional: navigate to profile after a short delay
+      setTimeout(() => navigate("/user-profile"), 2500);
+
     } catch (err) {
       console.error(err);
       alert("Failed to upload artwork. Try again.");
@@ -88,16 +98,9 @@ function UploadArtForm() {
     }
   };
 
-  const handleClear = () => {
-    setSelectedFile(null);
-    setPreviewUrl("");
-    setTitle("");
-    setDescription("");
-  };
-
   return (
     <div className="upload-form-container">
-      {/* ✅ Uploading Overlay */}
+      {/* Uploading Overlay */}
       {isUploading && (
         <div className="uploading-overlay">
           <div className="uploading-box">
@@ -107,7 +110,13 @@ function UploadArtForm() {
         </div>
       )}
 
-  
+      {/* ✅ Success Notification */}
+      {showSuccess && (
+        <div className="success-popup">
+          <p> Artwork uploaded successfully!</p>
+        </div>
+      )}
+
       <button
         type="button"
         className="btn-back1"

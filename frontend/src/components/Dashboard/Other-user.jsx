@@ -143,7 +143,7 @@ const UserProfile = () => {
     <div className="up-user-profile-page">
       {/* Header */}
       <div className="up-user-header">
-        <button className="up-back-btn" onClick={() => navigate("/gallery")}>
+        <button className="up-back-btn" onClick={() => navigate(-1)}>
           <FaArrowLeft /> Back
         </button>
       </div>

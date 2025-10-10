@@ -335,3 +335,48 @@
   background-color: #b91c1c; /* same hover as logout-btn */
   transform: translateY(-2px);
 }
+
+
+/* ---------- Popup ---------- */
+.board-popup {
+  position: fixed;
+  top: 20px;
+  right: 30px;
+  background-color: #4f46e5;
+  color: #fff;
+  padding: 14px 22px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  font-weight: 600;
+  z-index: 9999;
+  animation: popupFade 0.5s ease-in-out;
+}
+
+.popup-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.popup-buttons button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.popup-buttons button:first-child {
+  background-color: #ef4444;
+  color: white;
+}
+
+.popup-buttons button:last-child {
+  background-color: #ccc;
+  color: #333;
+}
+
+@keyframes popupFade {
+  0% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
