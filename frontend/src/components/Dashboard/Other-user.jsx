@@ -46,7 +46,7 @@ const UserProfile = () => {
         setUploads(
           data.data.uploads.map((upload) => ({
             ...upload,
-            isLiked: false,
+            isLiked: upload.likedByUser,
             likesCount: upload.likes,
             isBookmarked: bookmarks.some((b) => b.id === upload._id),
           }))

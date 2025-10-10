@@ -140,6 +140,8 @@
 }
 
 
+
+
 .profile-input,
 .profile-textarea {
   min-width: 500px;
@@ -150,6 +152,7 @@
   font-size: 1rem;
   transition: 0.3s;
   background-color: #f4f4f9;
+
 }
 
 .profile-input:focus,

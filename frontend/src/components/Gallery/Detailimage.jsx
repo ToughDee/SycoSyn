@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { BookmarksContext } from "../../Store/BookmarksContext";
+import { BoardsContext } from "../../Store/BoardContext";
 import { FaHeart } from "react-icons/fa";
 import { BiSolidBookmarkStar } from "react-icons/bi";
+
 
 import "./Gallery.css";
 
@@ -10,6 +12,7 @@ const ImageDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { bookmarks, dispatchBookmarks } = useContext(BookmarksContext);
+  const { boards } = useContext(BoardsContext);
 
   const [imageData, setImageData] = useState(null);
   const [comments, setComments] = useState([]);
@@ -19,6 +22,7 @@ const ImageDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [newComment, setNewComment] = useState("");
+  const [showBoardDropdown, setShowBoardDropdown] = useState(false);
 
   // Fetch image + comments once
   useEffect(() => {
@@ -30,10 +34,10 @@ const ImageDetailPage = () => {
         });
         if (!imageRes.ok) throw new Error("Failed to fetch image");
         const imageJson = await imageRes.json();
-        setImageData(imageJson.data);
+        setImageData(imageJson.data.art);
         setIsLiked(imageJson.data.likedByUser || false);
-        setLikesCount(imageJson.data.likes || 0);
-        setIsBookmarked(bookmarks.some((b) => b.id === imageJson.data._id));
+        setLikesCount(imageJson.data.art.likes || 0);
+        setIsBookmarked(imageJson.data.isBookmarked || false);
 
         const commentsRes = await fetch(`http://localhost:8000/api/v1/comments/${id}`, {
           credentials: "include",
@@ -52,6 +56,7 @@ const ImageDetailPage = () => {
     fetchData();
   }, [id, bookmarks]);
 
+  // Like toggle
   const handleLike = async () => {
     try {
       const newLiked = !isLiked;
@@ -72,6 +77,7 @@ const ImageDetailPage = () => {
     }
   };
 
+  // Bookmark toggle
   const handleBookmark = async () => {
     try {
       const newBookmark = !isBookmarked;
@@ -106,6 +112,25 @@ const ImageDetailPage = () => {
     }
   };
 
+  // Add to board
+  const handleAddToBoard = async (boardId) => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/v1/board/add/${imageData._id}/${boardId}`, {
+        method: "PATCH",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || "Failed to add artwork to board");
+
+      alert(`Artwork added to board!`);
+      setShowBoardDropdown(false);
+    } catch (err) {
+      console.error(err);
+      alert("Error adding artwork to board");
+    }
+  };
+
+  // Add comment
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
 
@@ -113,14 +138,11 @@ const ImageDetailPage = () => {
       const res = await fetch(`http://localhost:8000/api/v1/comments/${id}`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: newComment }),
       });
 
       if (!res.ok) throw new Error("Failed to post comment");
-
       const data = await res.json();
       setComments((prev) => [data.data, ...prev]);
       setNewComment("");
@@ -148,34 +170,46 @@ const ImageDetailPage = () => {
           <button className={isBookmarked ? "bookmarked" : ""} onClick={handleBookmark}>
             <BiSolidBookmarkStar />
           </button>
+
+          {/* Add to Board Dropdown */}
+          <div className="add-board-container">
+            <button
+              onClick={() => setShowBoardDropdown((prev) => !prev)}
+              className="add-board-btn"
+            >
+              Add to Board
+            </button>
+            {showBoardDropdown && (
+              <div className="add-board-dropdown">
+                {boards.length === 0 ? (
+                  <p className="dropdown-item">No boards found</p>
+                ) : (
+                  boards.map((b) => (
+                    <div
+                      key={b._id}
+                      onClick={() => handleAddToBoard(b._id)}
+                      className="dropdown-item"
+                    >
+                      {b.name}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       <div className="comments-section">
         <h3>Comments</h3>
-
-        {/* Add comment input */}
-        <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
+        <div className="add-comment">
           <input
             type="text"
             placeholder="Add a comment..."
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            style={{ flex: 1, padding: "8px", borderRadius: "6px", border: "1px solid #ccc" }}
           />
-          <button
-            onClick={handleAddComment}
-            style={{
-              padding: "8px 12px",
-              borderRadius: "6px",
-              backgroundColor: "#4f46e5",
-              color: "white",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            Post
-          </button>
+          <button onClick={handleAddComment}>Post</button>
         </div>
 
         {comments.length === 0 && <p>No comments yet.</p>}

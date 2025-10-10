@@ -1,3 +1,4 @@
+// src/components/Dashboard/DasHBoard.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./DasHBoard.css";
@@ -15,43 +16,39 @@ const Dashboard = () => {
     navigate("/upload-artworks");
   };
 
+  const handleCreateBoardClick = () => {
+    navigate("/create-board");
+  };
+
   const handleHomeClick = () => {
     navigate("/gallery");
   };
 
   const handleLogout = () => {
-    setShowLogoutModal(true); // Show confirmation modal
+    setShowLogoutModal(true);
   };
 
- const confirmLogout = async () => {
-  try {
-    // Call backend logout API
-    const res = await fetch("http://localhost:8000/api/v1/user/logout", {
-      method: "POST",
-      credentials: "include", // important if you're using cookies/sessions
-    });
+  const confirmLogout = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/api/v1/user/logout", {
+        method: "POST",
+        credentials: "include",
+      });
 
-    if (res.ok) {
-      // Clear localStorage or tokens if used
-      localStorage.removeItem("authToken");
-      sessionStorage.removeItem("authToken");
-
-      // Optional: Clear any app state (like user context)
-      console.log("User logged out successfully.");
-
-      // Hide modal and navigate away
-      setShowLogoutModal(false);
-      navigate("/"); // redirect to home/login
-    } else {
-      const data = await res.json();
-      console.error("Logout failed:", data.message);
-      alert("Logout failed: " + data.message);
+      if (res.ok) {
+        localStorage.removeItem("authToken");
+        sessionStorage.removeItem("authToken");
+        setShowLogoutModal(false);
+        navigate("/"); // redirect to home/login
+      } else {
+        const data = await res.json();
+        alert("Logout failed: " + data.message);
+      }
+    } catch (err) {
+      console.error("Error logging out:", err);
+      alert("An error occurred during logout");
     }
-  } catch (err) {
-    console.error("Error logging out:", err);
-    alert("An error occurred during logout");
-  }
-};
+  };
 
   const cancelLogout = () => {
     setShowLogoutModal(false);
@@ -60,11 +57,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <header className="dashboard-header">
-        <h1
-          className="homiee"
-          onClick={handleHomeClick}
-          style={{ cursor: "pointer" }}
-        >
+        <h1 className="homiee" onClick={handleHomeClick} style={{ cursor: "pointer" }}>
           Home
         </h1>
 
@@ -72,6 +65,12 @@ const Dashboard = () => {
           <button className="upload-btn" onClick={handleUploadClick}>
             Upload New Artwork
           </button>
+
+          {/* ✅ Create New Board button next to Upload Artwork */}
+          <button className="create-board-btn" onClick={handleCreateBoardClick}>
+            + Create New Board
+          </button>
+
           <button className="logout-btn" onClick={handleLogout}>
             Log Out
           </button>
@@ -87,11 +86,10 @@ const Dashboard = () => {
           <StatsCards />
           <UploadsSection />
           <BookmarksSection />
-           <BoardsSection /> 
+          <BoardsSection />
         </div>
       </div>
 
-      {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className="modal-overlay">
           <div className="modal-content">

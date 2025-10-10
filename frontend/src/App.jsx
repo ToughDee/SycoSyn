@@ -20,6 +20,7 @@ import { AuthProvider } from "./Store/Authcontext";
 import BoardPage1 from "./components/Dashboard/BoardPage";
 import { BoardsProvider } from "./Store/BoardContext";
 import ImageDetailPage from "./components/Gallery/Detailimage";
+import CreateBoard from "./components/Dashboard/Creatboard";
 
 
 
@@ -41,7 +42,9 @@ function App() {
             <Route path="/user/:userId" element={<UserProfileTest />} />
              <Route path="/art/:id" element={<ArtDetail />} />
              <Route path="/boards/:id" element={<BoardPage1 />} />
+              <Route path="/create-board" element={<CreateBoard />} />
              <Route path="/image/:id" element={<ImageDetailPage />} />
+
           </Routes>
         </Router>
         </BoardsProvider>
