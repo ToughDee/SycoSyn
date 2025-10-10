@@ -7,6 +7,7 @@ import connectDB from "../db/index.js";
 import { User } from "../models/user.models.js";
 import { Art } from "../models/art.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { esClient, ensureArtsIndex } from "../utils/elasticsearch.js";
 
 dotenv.config();
 
@@ -102,7 +103,37 @@ const seedDB = async () => {
       }
     }
 
-    console.log("🌱 Seeding completed successfully!");
+    // 🧭 Reindex all arts into Elasticsearch
+    console.log("\n🔄 Reindexing all arts into Elasticsearch...");
+    await ensureArtsIndex();
+
+    const arts = await Art.find();
+    if (arts.length === 0) {
+      console.log("⚠️ No arts found to index.");
+    } else {
+      const bulkBody = arts.flatMap((art) => [
+        { index: { _index: "arts", _id: art._id.toString() } },
+        {
+          name: art.name,
+          caption: art.caption,
+          content: art.content,
+          tags: art.tags,
+          owner: art.owner?.toString(),
+          likes: art.likes || 0,
+          views: art.views || 0,
+          createdAt: art.createdAt,
+        },
+      ]);
+
+      const { errors } = await esClient.bulk({ refresh: true, body: bulkBody });
+      if (errors) {
+        console.error("❌ Some documents failed to index in Elasticsearch");
+      } else {
+        console.log(`✅ Reindexed ${arts.length} arts into Elasticsearch`);
+      }
+    }
+
+    console.log("\n🌱 Seeding completed successfully!");
     process.exit(0);
   } catch (error) {
     console.error("❌ Error during seeding:", error);
