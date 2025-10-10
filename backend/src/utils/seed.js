@@ -6,56 +6,25 @@ import { faker } from "@faker-js/faker";
 import connectDB from "../db/index.js";
 import { User } from "../models/user.models.js";
 import { Art } from "../models/art.models.js";
-import OpenAI from "openai";
-import { uploadOnCloudinary } from "../utils/cloudinary.js"; // your function
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 dotenv.config();
 
+// ===== CONFIG =====
 const USERS_COUNT = 10;
-const IMAGES_FOLDER = path.join(process.cwd(), "seed_images"); // folder with your images
+const IMAGES_FOLDER = path.join(process.cwd(), "seed_images");
 const IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif"];
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// AI tag generation function
-async function generateTags(imagePath) {
-  try {
-    const imageData = fs.readFileSync(imagePath);
-
-    const response = await openai.responses.create({
-      model: "gpt-4.1-mini",
-      input: [
-        {
-          role: "user",
-          content: [
-            { type: "input_text", text: "Generate 3-5 descriptive tags for this image" },
-            { type: "input_image", image: imageData.toString("base64") },
-          ],
-        },
-      ],
-    });
-
-    const text = response.output_text || "";
-    const tags = text
-      .split(/,|\n/)
-      .map((t) => t.trim().toLowerCase())
-      .filter((t) => t);
-
-    return tags.slice(0, 5);
-  } catch (err) {
-    console.error("❌ Error generating tags for", imagePath, err);
-    return [];
-  }
-}
 
 const seedDB = async () => {
   try {
     await connectDB();
     console.log("✅ Connected to MongoDB");
 
-    // ----- Create users -----
+    // 🧹 Clean old data (optional)
+    await Promise.all([User.deleteMany({}), Art.deleteMany({})]);
+    console.log("🧹 Cleared existing users and arts");
+
+    // 👤 Create random users
     const users = [];
     for (let i = 0; i < USERS_COUNT; i++) {
       const firstName = faker.person.firstName();
@@ -71,52 +40,50 @@ const seedDB = async () => {
     }
     console.log(`✅ Created ${users.length} users`);
 
-    // ----- Read images -----
+    // 🖼️ Get all image files
     const imageFiles = fs
       .readdirSync(IMAGES_FOLDER)
       .filter((f) => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()));
 
-    if (!imageFiles.length) {
-      console.log("⚠️ No images found in folder");
+    if (imageFiles.length === 0) {
+      console.log("⚠️ No images found in seed_images folder");
       process.exit(0);
     }
 
-    console.log(`Found ${imageFiles.length} images to seed`);
+    console.log(`📸 Found ${imageFiles.length} images`);
 
-    // ----- Create arts -----
-    for (const img of imageFiles) {
+    // 🎨 Create art entries
+    for (const file of imageFiles) {
+      const imagePath = path.join(IMAGES_FOLDER, file);
+      const fileName = path.parse(file).name; // file name without extension
       const owner = faker.helpers.arrayElement(users);
-      const imagePath = path.join(IMAGES_FOLDER, img);
 
-      // 1️⃣ Upload image to Cloudinary
+      // Upload to Cloudinary
       const uploadResult = await uploadOnCloudinary(imagePath);
       if (!uploadResult?.url) {
-        console.warn(`⚠️ Skipping ${img} (upload failed)`);
+        console.warn(`⚠️ Failed to upload ${file}`);
         continue;
       }
 
-      // 2️⃣ Generate AI tags
-      const tags = await generateTags(imagePath);
-
-      // 3️⃣ Save to DB
+      // Create art document
       await Art.create({
         owner: owner._id,
-        name: faker.commerce.productName(),
-        content: uploadResult.url, // Cloudinary URL
-        caption: faker.lorem.sentence(),
-        tags,
+        name: fileName,
+        content: uploadResult.url,
+        caption: "",
+        tags: [],
         likes: faker.number.int({ min: 0, max: 500 }),
-        views: faker.number.int({ min: 100, max: 2000 }),
+        views: faker.number.int({ min: 50, max: 2000 }),
         isPublished: true,
       });
 
-      console.log(`✅ Added ${img} with tags: ${tags.join(", ")}`);
+      console.log(`✅ Seeded art: ${fileName}`);
     }
 
-    console.log("🌱 Seeding complete!");
+    console.log("🌱 Seeding completed successfully!");
     process.exit(0);
-  } catch (err) {
-    console.error("❌ Seeding error:", err);
+  } catch (error) {
+    console.error("❌ Error during seeding:", error);
     process.exit(1);
   }
 };
