@@ -27,7 +27,7 @@ const getAllArts = AsyncHandler(async (req, res) => {
   let source = "MongoDB";
 
   // ---------------- Elasticsearch ----------------
-  if (query || category) {
+  if (query || (category && category !== "All") || userId) {
     try {
       const esQuery = {
         index: "arts",
@@ -41,7 +41,7 @@ const getAllArts = AsyncHandler(async (req, res) => {
                 ? {
                     multi_match: {
                       query,
-                      fields: ["name^3", "caption", "tags", "content"],
+                      fields: ["name^3", "caption", "tags"], // fuzzy search
                       fuzziness: "AUTO",
                     },
                   }
@@ -49,11 +49,9 @@ const getAllArts = AsyncHandler(async (req, res) => {
             ],
             filter: [
               ...(category && category !== "All"
-                ? [{ term: { tags: category.toLowerCase() } }]
+                ? [{ term: { "tags.keyword": category.toLowerCase() } }] // exact match
                 : []),
-              ...(userId
-                ? [{ term: { owner: userId } }]
-                : []),
+              ...(userId ? [{ term: { owner: userId } }] : []),
             ],
           },
         },
@@ -95,7 +93,6 @@ const getAllArts = AsyncHandler(async (req, res) => {
   let bookmarkedSet = new Set();
 
   if (loggedInUserId) {
-    // Fetch user's bookmarks
     const user = await User.findById(loggedInUserId).select("bookmark");
     if (user?.bookmark?.length) {
       bookmarkedSet = new Set(user.bookmark.map((id) => id.toString()));
@@ -112,13 +109,15 @@ const getAllArts = AsyncHandler(async (req, res) => {
     const likedSet = new Set(likedDocs.map((l) => l.art.toString()));
 
     arts = arts.map((art) => ({
-      ...art.toObject?.() || art,
+      ...(art.toObject?.() || art),
+      // art,
       likedByUser: likedSet.has(art._id.toString()),
       isBookmarked: bookmarkedSet.has(art._id.toString()),
     }));
   } else {
     arts = arts.map((art) => ({
-      ...art.toObject?.() || art,
+      ...(art.toObject?.() || art),
+      // art,
       likedByUser: false,
       isBookmarked: false,
     }));

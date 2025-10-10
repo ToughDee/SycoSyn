@@ -17,6 +17,9 @@ const artSchema = new Schema(
 
 artSchema.post("save", async function (doc) {
   try {
+    // fetch owner details
+    const ownerData = await User.findById(doc.owner).select("username avatar");
+
     await esClient.index({
       index: "arts",
       id: doc._id.toString(),
@@ -25,11 +28,17 @@ artSchema.post("save", async function (doc) {
         caption: doc.caption,
         content: doc.content,
         tags: doc.tags,
-        owner: doc.owner,
+        owner: ownerData
+          ? {
+              _id: ownerData._id.toString(),
+              username: ownerData.username,
+              avatar: ownerData.avatar
+            }
+          : null,
         likes: doc.likes,
         views: doc.views,
-        createdAt: doc.createdAt,
-      },
+        createdAt: doc.createdAt
+      }
     });
   } catch (err) {
     console.error("❌ Error indexing art in Elasticsearch:", err);
@@ -38,11 +47,29 @@ artSchema.post("save", async function (doc) {
 
 artSchema.post("findOneAndUpdate", async function (doc) {
   if (!doc) return;
+
   try {
+    const ownerData = await User.findById(doc.owner).select("username avatar");
+
     await esClient.update({
       index: "arts",
       id: doc._id.toString(),
-      doc: doc.toObject(),
+      doc: {
+        name: doc.name,
+        caption: doc.caption,
+        content: doc.content,
+        tags: doc.tags,
+        owner: ownerData
+          ? {
+              _id: ownerData._id.toString(),
+              username: ownerData.username,
+              avatar: ownerData.avatar
+            }
+          : null,
+        likes: doc.likes,
+        views: doc.views,
+        createdAt: doc.createdAt
+      }
     });
   } catch (err) {
     console.error("❌ Error updating Elasticsearch index:", err);
@@ -51,14 +78,29 @@ artSchema.post("findOneAndUpdate", async function (doc) {
 
 artSchema.post("findOneAndDelete", async function (doc) {
   if (!doc) return;
+
   try {
+    // Optional: fetch owner info for logging/debug
+    const ownerData = await User.findById(doc.owner).select("username avatar");
+
+    console.log(`Deleting art from ES:
+      Art ID: ${doc._id.toString()}
+      Owner: ${ownerData ? ownerData.username : 'Unknown'}
+    `);
+
     await esClient.delete({
       index: "arts",
       id: doc._id.toString(),
     });
+
+    console.log(`✅ Successfully deleted art ${doc._id.toString()} from ES`);
   } catch (err) {
-    console.error("❌ Error deleting from Elasticsearch:", err);
+    console.error(
+      `❌ Error deleting art ${doc._id.toString()} from Elasticsearch:`,
+      err
+    );
   }
 });
+
 
 export const Art = mongoose.model("Art", artSchema);
