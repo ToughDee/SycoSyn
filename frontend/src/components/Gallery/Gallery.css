@@ -34,17 +34,25 @@
 }
 
 .g1-profile-btn {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 2rem;
   display: flex;
   background: linear-gradient(90deg, #0d9488, #7c3aed);
   -webkit-text-fill-color: transparent;
   border: none;
   cursor: pointer;
-  max-width: 100px;
-  border-radius: 50px;
+  justify-content: center;
+  align-items: center;
+  height: 55px;
+  width: 55px;
+  border-radius: 50%;
   margin-right: 10px;
+  overflow: hidden; /* ensures image doesn’t overflow button */
+}
+
+.g1-profile-icon {
+  border-radius: 50%;
+  width: 57px;  /* slightly bigger */
+  height: 57px; /* slightly bigger */
+  object-fit: cover;
 }
 
 /* ---------- Search Bar ---------- */

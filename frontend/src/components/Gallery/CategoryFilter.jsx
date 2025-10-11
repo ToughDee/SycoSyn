@@ -4,7 +4,7 @@ import "./Gallery.css";
 const categories = [
   "All",
   "Painting",
-  "Illustration",
+  
   "Digital",
   "Photography",
   "3D Art",
@@ -12,7 +12,7 @@ const categories = [
   "Sketch",
   "Abstract",
   "Nature",
-  "Architecture",
+  
   "People",
   "Animals"
 ];

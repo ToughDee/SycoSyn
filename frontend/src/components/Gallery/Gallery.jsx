@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import TopBar from "./TopBar";
 import SearchBar from "./SearchBar";
 import CategoryFilter from "./CategoryFilter";
 import ImageCard from "./Imagecard";
 import "./Gallery.css";
+import { BoardsContext } from "../../Store/BoardContext";
 
 function Gallery() {
   const [images, setImages] = useState([]);
@@ -11,38 +12,49 @@ function Gallery() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const fetchArts = async () => {
-    setIsLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: 1,
-        limit: 60,
-        query: searchTerm,
-        category: selectedCategory === "All" ? "" : selectedCategory
 
-      });
+  const { user, refreshBoards } = useContext(BoardsContext);
 
-      const response = await fetch(`http://localhost:8000/api/v1/art?${params.toString()}`, {credentials: "include"});
-      const data = await response.json();
-
-     const shuffled = data.data.arts.sort(() => Math.random() - 0.5);
-
-      setImages(shuffled || []);
-    } catch (error) {
-      console.error("Error fetching arts:", error);
-      setImages([]);
-    } finally {
-      setIsLoading(false);
+  // ✅ Refresh boards only after user is loaded
+  useEffect(() => {
+    if (user) {
+      refreshBoards();
     }
-  };
+  }, [user, refreshBoards]);
+  
+ const fetchArts = async () => {
+  setIsLoading(true);
+  try {
+    // Always include query and category
+    const params = new URLSearchParams({
+      page: 1,
+      limit: 60,
+      query: searchTerm, // can be empty string
+      category: selectedCategory === "All" ? "" : selectedCategory,
+    });
+
+    const response = await fetch(`http://localhost:8000/api/v1/art?${params.toString()}`, {
+      credentials: "include",
+    });
+    const data = await response.json();
+
+    const shuffled = data.data?.arts?.sort(() => Math.random() - 0.5) || [];
+    setImages(shuffled);
+  } catch (error) {
+    console.error("Error fetching arts:", error);
+    setImages([]);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchArts();
   }, [searchTerm, selectedCategory]);
 
   const handleSearch = (term) => {
-    setSearchTerm(term || "art");
-    setSelectedCategory("All");
+    setSearchTerm(term || "");
+    // setSelectedCategory(Se);
   };
 
   return (

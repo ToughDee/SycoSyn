@@ -7,10 +7,10 @@ const SearchBar = ({ onSearch }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const searchTerm = inputRef.current.value.trim();
-    if (searchTerm !== "") {
+   
       onSearch(searchTerm);
       
-    }
+
   };
 
   return (

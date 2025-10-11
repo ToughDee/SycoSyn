@@ -14,12 +14,17 @@ const BoardPage1 = () => {
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
-  // ✅ Popup state
+  const [showCollabInput, setShowCollabInput] = useState(false);
+  const [collabUsername, setCollabUsername] = useState("");
   const [popupMessage, setPopupMessage] = useState("");
   const [showPopup, setShowPopup] = useState(false);
-  const [pendingDeleteArtId, setPendingDeleteArtId] = useState(null);
 
-  // 🔹 Fetch board
+  // new confirmation popup states
+  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState("");
+  const [confirmAction, setConfirmAction] = useState(() => {});
+
+  // Fetch board by ID
   useEffect(() => {
     const fetchBoard = async () => {
       try {
@@ -57,7 +62,6 @@ const BoardPage1 = () => {
     }
   };
 
-  // 🔹 Save board with popup
   const saveBoard = async () => {
     setSaving(true);
     try {
@@ -83,7 +87,6 @@ const BoardPage1 = () => {
         }));
         setEditMode(false);
         await refreshBoards();
-
         setPopupMessage("Board updated successfully!");
         setShowPopup(true);
         setTimeout(() => setShowPopup(false), 2000);
@@ -94,52 +97,100 @@ const BoardPage1 = () => {
       }
     } catch (err) {
       console.error("Error updating board:", err);
-      setPopupMessage("Error updating board");
-      setShowPopup(true);
-      setTimeout(() => setShowPopup(false), 2000);
     } finally {
       setSaving(false);
     }
   };
 
-  // 🔹 Delete artwork with popup confirmation
-  const deleteArtwork = (artId) => {
-    setPopupMessage("Delete this artwork from board?");
-    setShowPopup(true);
-    setPendingDeleteArtId(artId);
+  // 🔴 Updated delete board with popup
+  const deleteBoard = async () => {
+    setConfirmMessage("Are you sure you want to delete this board?");
+    setConfirmAction(() => async () => {
+      setShowConfirmPopup(false);
+      try {
+        const res = await fetch(`http://localhost:8000/api/v1/board/${id}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (data.success) {
+          await refreshBoards();
+          setPopupMessage("Board deleted successfully!");
+          setShowPopup(true);
+          setTimeout(() => {
+            setShowPopup(false);
+            navigate("/user-profile");
+          }, 1500);
+        } else {
+          setPopupMessage("Failed to delete board");
+          setShowPopup(true);
+          setTimeout(() => setShowPopup(false), 2000);
+        }
+      } catch (err) {
+        console.error("Error deleting board:", err);
+      }
+    });
+    setShowConfirmPopup(true);
   };
 
-  const handleConfirmDeleteArtwork = async () => {
-    const artId = pendingDeleteArtId;
-    if (!artId) return;
+  // 🔴 Updated delete artwork with popup
+  const deleteArtwork = async (artId) => {
+    setConfirmMessage("Delete this artwork from the board?");
+    setConfirmAction(() => async () => {
+      setShowConfirmPopup(false);
+      try {
+        const res = await fetch(`http://localhost:8000/api/v1/board/remove/${artId}/${id}`, {
+          method: "PATCH",
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (data.success) {
+          setBoard((prev) => ({
+            ...prev,
+            arts: prev.arts.filter((art) => art._id !== artId),
+          }));
+          await refreshBoards();
+          setPopupMessage("Artwork removed successfully!");
+          setShowPopup(true);
+          setTimeout(() => setShowPopup(false), 1500);
+        } else {
+          setPopupMessage("Failed to delete artwork");
+          setShowPopup(true);
+          setTimeout(() => setShowPopup(false), 2000);
+        }
+      } catch (err) {
+        console.error("Error deleting artwork:", err);
+      }
+    });
+    setShowConfirmPopup(true);
+  };
 
-    setShowPopup(false);
-    setPendingDeleteArtId(null);
-
+  const addCollaborator = async () => {
+    if (!collabUsername.trim()) return;
     try {
       const res = await fetch(
-        `http://localhost:8000/api/v1/board/remove/${artId}/${id}`,
-        { method: "PATCH", credentials: "include" }
+        `http://localhost:8000/api/v1/board/collaborate/${id}/${collabUsername}`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
       );
       const data = await res.json();
       if (data.success) {
-        setBoard((prev) => ({
-          ...prev,
-          arts: prev.arts.filter((art) => art._id !== artId),
-        }));
-        await refreshBoards();
-
-        setPopupMessage("Artwork deleted successfully!");
+        setPopupMessage("Collaborator added!");
         setShowPopup(true);
+        setCollabUsername("");
+        setShowCollabInput(false);
         setTimeout(() => setShowPopup(false), 2000);
+        await refreshBoards();
       } else {
-        setPopupMessage("Failed to delete artwork");
+        setPopupMessage(data.message || "Failed to add collaborator");
         setShowPopup(true);
         setTimeout(() => setShowPopup(false), 2000);
       }
     } catch (err) {
-      console.error("Error deleting artwork:", err);
-      setPopupMessage("Error deleting artwork");
+      console.error("Error adding collaborator:", err);
+      setPopupMessage("Error adding collaborator");
       setShowPopup(true);
       setTimeout(() => setShowPopup(false), 2000);
     }
@@ -150,36 +201,55 @@ const BoardPage1 = () => {
 
   return (
     <div className="board-page1">
-      {/* Popup */}
-      {showPopup && (
-        <div className="board-popup">
-          <p>{popupMessage}</p>
-          {pendingDeleteArtId && (
-            <div className="popup-buttons">
-              <button onClick={handleConfirmDeleteArtwork}>Yes</button>
-              <button
-                onClick={() => {
-                  setShowPopup(false);
-                  setPendingDeleteArtId(null);
-                }}
-              >
-                No
-              </button>
+      {/* Header */}
+      <header className="board-header1">
+        <button className="back-btn1" onClick={() => navigate(-1)}>← Back</button>
+        <h1 className="board-page-title1">{board.name}</h1>
+
+        {showCollabInput ? (
+          <div className="collab-input-wrapper">
+            <input
+              type="text"
+              placeholder="Enter username"
+              value={collabUsername}
+              onChange={(e) => setCollabUsername(e.target.value)}
+              className="collab-input"
+            />
+            <button className="collab-add-btn" onClick={addCollaborator}>
+              Add
+            </button>
+            <button className="collab-cancel-btn" onClick={() => setShowCollabInput(false)}>
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button className="collab-btn1" onClick={() => setShowCollabInput(true)}>
+            + Add Collaborators
+          </button>
+        )}
+
+        <button className="delete-board-btn1" onClick={deleteBoard}>
+          Delete Board
+        </button>
+      </header>
+
+      {showPopup && <div className="board-success-popup1 centered-popup1">{popupMessage}</div>}
+
+      {/* Confirmation Popup */}
+      {showConfirmPopup && (
+        <div className="confirm-popup-overlay">
+          <div className="confirm-popup">
+            <p>{confirmMessage}</p>
+            <div className="confirm-btns">
+              <button onClick={confirmAction} className="confirm-yes-btn">Yes</button>
+              <button onClick={() => setShowConfirmPopup(false)} className="confirm-no-btn">No</button>
             </div>
-          )}
+          </div>
         </div>
       )}
 
-      {/* Header */}
-      <header className="board-header1">
-        <button className="back-btn1" onClick={() => navigate(-1)}>
-          ← Back
-        </button>
-        <h1 className="board-page-title1">{board.name}</h1>
-      </header>
-
       <div className="board-content1">
-        {/* Left Panel */}
+        {/* Left Side - Board Info */}
         <div className="board-info1">
           <img
             src={
@@ -197,16 +267,12 @@ const BoardPage1 = () => {
                 <input
                   type="text"
                   value={editedBoard.name}
-                  onChange={(e) =>
-                    setEditedBoard({ ...editedBoard, name: e.target.value })
-                  }
+                  onChange={(e) => setEditedBoard({ ...editedBoard, name: e.target.value })}
                   className="edit-input1"
                 />
                 <textarea
                   value={editedBoard.description}
-                  onChange={(e) =>
-                    setEditedBoard({ ...editedBoard, description: e.target.value })
-                  }
+                  onChange={(e) => setEditedBoard({ ...editedBoard, description: e.target.value })}
                   className="edit-textarea1"
                 />
                 <input
@@ -228,20 +294,18 @@ const BoardPage1 = () => {
               <>
                 <h2>{board.name}</h2>
                 <p>{board.description}</p>
-                <button className="edit-btn1" onClick={startEdit}>
-                  Edit Board
-                </button>
+                <button className="edit-btn1" onClick={startEdit}>Edit Board</button>
               </>
             )}
           </div>
         </div>
 
-        {/* Right Panel */}
+        {/* Right Side - Artworks */}
         <div className="board-artworks1">
           <h3 className="artworks-title1">Artworks in this board</h3>
-          <div className="artworks-scroll1">
-            {board.arts?.length > 0 ? (
-              board.arts.map((art) => (
+          {board.arts && board.arts.length > 0 ? (
+            <div className="artworks-scroll1">
+              {board.arts.map((art) => (
                 <div key={art._id} className="art-card1" style={{ position: "relative" }}>
                   <img src={art.content} alt={art.name} className="art-image1" />
                   {editMode && (
@@ -258,13 +322,11 @@ const BoardPage1 = () => {
                     <p>by {art.owner?.username}</p>
                   </div>
                 </div>
-              ))
-            ) : (
-              <p style={{ textAlign: "center", marginTop: "20px", color: "#555" }}>
-                No artworks added
-              </p>
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p>No artworks added.</p>
+          )}
         </div>
       </div>
     </div>

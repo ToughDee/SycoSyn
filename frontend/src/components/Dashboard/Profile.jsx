@@ -1,13 +1,15 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import "./prof.css";
 import { FaCamera } from "react-icons/fa";
 import { MdEmail, MdLocationOn } from "react-icons/md";
+import { UserContext } from "../../Store/UserContext"; // ✅ added
 
 const ProfileSection = () => {
   const fileInputRef = useRef(null);
+  const { user, setUser } = useContext(UserContext); // ✅ use context
 
   const defaultUser = {
-    name: "Your name here",
+    name: `name`,
     email: "email here",
     location: "city,state",
     avatar: "./assets/images/user-prof.webp",
@@ -15,13 +17,12 @@ const ProfileSection = () => {
     username: "Username",
   };
 
-  const [user, setUser] = useState(defaultUser);
   const [isEditing, setIsEditing] = useState(false);
-  const [previewAvatar, setPreviewAvatar] = useState(defaultUser.avatar);
+  const [previewAvatar, setPreviewAvatar] = useState(user?.avatar || defaultUser.avatar);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [saving, setSaving] = useState(false); // 🔹 for loader
-  const [popupMsg, setPopupMsg] = useState(""); // 🔹 for popup message
-  const [showPopup, setShowPopup] = useState(false); // 🔹 toggle popup
+  const [saving, setSaving] = useState(false);
+  const [popupMsg, setPopupMsg] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
 
   // Fetch current user
   useEffect(() => {
@@ -51,7 +52,7 @@ const ProfileSection = () => {
     };
 
     fetchCurrentUser();
-  }, []);
+  }, [setUser]);
 
   const handleEditClick = () => {
     setIsEditing(true);
@@ -71,7 +72,7 @@ const ProfileSection = () => {
   const handleCameraClick = () => fileInputRef.current.click();
 
   const handleSave = async () => {
-    setSaving(true); // 🔹 start loader
+    setSaving(true);
     try {
       // Update avatar first if changed
       if (selectedFile) {
@@ -86,7 +87,8 @@ const ProfileSection = () => {
 
         if (!avatarRes.ok) throw new Error("Failed to update avatar");
         const avatarData = await avatarRes.json();
-        setUser((prev) => ({ ...prev, avatar: avatarData.data.avatar }));
+
+        setUser((prev) => ({ ...prev, avatar: avatarData.data.avatar })); // ✅ update context
       }
 
       // Update other user details
@@ -120,7 +122,6 @@ const ProfileSection = () => {
       setSelectedFile(null);
       setPreviewAvatar(updatedUser.data.avatar || previewAvatar);
 
-      // 🔹 Show success popup
       setPopupMsg("Profile updated successfully!");
       setShowPopup(true);
     } catch (err) {
@@ -128,7 +129,7 @@ const ProfileSection = () => {
       setPopupMsg("Failed to save changes. Please try again.");
       setShowPopup(true);
     } finally {
-      setSaving(false); // 🔹 stop loader
+      setSaving(false);
     }
   };
 
@@ -216,14 +217,13 @@ const ProfileSection = () => {
           <button
             className={`edit-btn ${isEditing ? "save-btn" : ""}`}
             onClick={isEditing ? handleSave : handleEditClick}
-            disabled={saving} // disable while saving
+            disabled={saving}
           >
             {isEditing ? (saving ? "Saving..." : "Save Changes") : "Edit Profile"}
           </button>
         </div>
       </div>
 
-      {/* 🔹 Popup */}
       {showPopup && (
         <div className="popup-overlay1">
           <div className="popup-box1">

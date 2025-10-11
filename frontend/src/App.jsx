@@ -21,12 +21,14 @@ import BoardPage1 from "./components/Dashboard/BoardPage";
 import { BoardsProvider } from "./Store/BoardContext";
 import ImageDetailPage from "./components/Gallery/Detailimage";
 import CreateBoard from "./components/Dashboard/Creatboard";
+import { UserProvider } from "./Store/UserContext";
 
 
 
 function App() {
   return (
     <AuthProvider>
+       <UserProvider>   
     <UploadsProvider>
       <BookmarksProvider>
          <BoardsProvider>
@@ -50,6 +52,7 @@ function App() {
         </BoardsProvider>
       </BookmarksProvider>
     </UploadsProvider>
+    </UserProvider>
     </AuthProvider>
   );
 }
