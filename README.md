@@ -64,12 +64,6 @@ Before starting the backend, you need to **populate Elasticsearch** with your ex
 Run:
 
 ```bash
-npm run reindex
-```
-
-or manually:
-
-```bash
 node scripts/reindex.js
 ```
 
