@@ -23,7 +23,7 @@ export default function AuthForm1() {
     /* global google */
     if (window.google) {
       google.accounts.id.initialize({
-        client_id: "YOUR_GOOGLE_CLIENT_ID_HERE", // <-- Replace with your OAuth Client ID
+        client_id: "704024167617-77e3j6u88k0e29b3b41dfjk28e4fvfvn.apps.googleusercontent.com",
         callback: handleGoogleResponse,
       });
 
@@ -39,7 +39,7 @@ export default function AuthForm1() {
       const token = response.credential; // This is the Google ID token (JWT)
       setLoading(true);
 
-      const res = await fetch("http://localhost:8000/api/v1/user/google-login", {
+      const res = await fetch("http://localhost:8000/api/v1/auth/google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),

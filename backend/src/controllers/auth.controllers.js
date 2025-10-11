@@ -10,7 +10,7 @@ import { generateAccessAndRefreshToken } from "./user.controllers.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-export const googleAuth = async (req, res) => {
+export const googleAuth = AsyncHandler(async (req, res) => {
   try {
     const { token } = req.body;
 
@@ -23,52 +23,74 @@ export const googleAuth = async (req, res) => {
     const payload = ticket.getPayload();
     const { email, name, picture } = payload;
 
-    // 2️⃣ Check if user exists
+    // 2️⃣ Check if user exists or create a new one
     let user = await User.findOne({ email });
-
-    // 3️⃣ If not, create a new user
     if (!user) {
       user = await User.create({
         email,
-        username: name.replace(/\s+/g, "").toLowerCase(), // simple username from name
+        username: name.replace(/\s+/g, "").toLowerCase(),
         fullname: name,
         avatar: picture,
-        password: null, // no password for Google login
+        password: "null",
       });
     }
 
-    // 4️⃣ Generate JWT (same as your normal login)
-    const jwtToken = jwt.sign(
+    // 3️⃣ Generate Access & Refresh Tokens
+    const accessToken = jwt.sign(
       { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
     );
 
-    // 5️⃣ Set cookie (like your normal login)
-    res.cookie("token", jwtToken, {
+    const refreshToken = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
+    );
+
+    // 4️⃣ Save refresh token in DB
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    // 5️⃣ Set both tokens as cookies
+    res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    // 6️⃣ Respond with user info (optional)
-    res.status(200).json({
-      success: true,
-      message: "Logged in successfully via Google",
-      user: {
-        id: user._id,
-        email: user.email,
-        username: user.username,
-        fullname: user.fullname,
-        avatar: user.avatar,
-      },
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
     });
+
+    // 6️⃣ Send consistent response
+    return res.status(200).json(
+      new APIResponse(
+        200,
+        {
+          success: true,
+          message: "Logged in successfully via Google",
+          user: {
+            id: user._id,
+            email: user.email,
+            username: user.username,
+            fullname: user.fullname,
+            avatar: user.avatar,
+          },
+          accessToken,
+          refreshToken,
+        },
+        "Google login success"
+      )
+    );
   } catch (err) {
     console.error("❌ Google auth error:", err);
-    res.status(400).json({ success: false, message: "Google login failed" });
+    return res
+      .status(400)
+      .json(new APIResponse(400, { success: false }, "Google login failed"));
   }
-};
+});
+
 
 
 export const authCheck = AsyncHandler(async (req, res) => {
