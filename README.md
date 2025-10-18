@@ -17,7 +17,7 @@ Make sure you have the following installed:
 Run the following command to start Elasticsearch in a Docker container:
 
 ```bash
-docker run -d   --name elasticsearch   -p 9200:9200   -e "discovery.type=single-node"   -e "ES_JAVA_OPTS=-Xms512m -Xmx512m"   -e "xpack.security.enabled=false"   docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+docker run -d --name elasticsearch -p 9200:9200 -e "discovery.type=single-node" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:9.0.0
 ```
 
 > 🧠 Tip: Check if it’s running by visiting [http://localhost:9200](http://localhost:9200)
